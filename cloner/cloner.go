@@ -13,6 +13,7 @@ type (
 	Params struct {
 		Repo string
 		Ref  string
+		Sha  string
 		Dir  string // Target clone directory.
 	}
 

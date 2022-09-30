@@ -19,11 +19,10 @@ import (
 )
 
 var (
-	// plugin repository
-	repo = flag.String("repo", "https://github.com/bradrydzewski/test-step.git", "")
-
-	// plugin repository reference
-	ref = flag.String("ref", "refs/heads/main", "")
+	name string // plugin name
+	repo string // plugin repository
+	ref  string // plugin repository reference
+	sha  string // plugin repository commit
 )
 
 func main() {
@@ -32,7 +31,20 @@ func main() {
 	ctx = slog.NewContext(ctx, log)
 
 	// parse the input parameters
+	flag.StringVar(&name, "name", "", "plugin name")
+	flag.StringVar(&repo, "repo", "", "plugin repository")
+	flag.StringVar(&ref, "ref", "", "plugin reference")
+	flag.StringVar(&sha, "sha", "", "plugin commit")
 	flag.Parse()
+
+	// the user may specific the bitrise plugin alias instead
+	// of the git repository. We are able to lookup the plugin
+	// by alias to find the corresponding repository and commit.
+	repo_, sha_, ok := bitrise.ParseLookup(name)
+	if ok {
+		repo = repo_
+		sha = sha_
+	}
 
 	// current working directory (workspace)
 	workdir, err := os.Getwd()
@@ -52,8 +64,9 @@ func main() {
 	// clone the plugin repository
 	clone := cloner.Default()
 	err = clone.Clone(ctx, cloner.Params{
-		Repo: *repo,
-		Ref:  *ref,
+		Repo: repo,
+		Ref:  ref,
+		Sha:  sha,
 		Dir:  codedir,
 	})
 	if err != nil {

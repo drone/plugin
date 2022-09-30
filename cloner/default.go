@@ -37,11 +37,30 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 		RemoteName: c.remote,
 		URL:        params.Repo,
 	}
-	if isHash(params.Ref) {
-		opts.ReferenceName = plumbing.ReferenceName(params.Ref)
-	} else if params.Ref != "" {
+	// set the reference name if provided
+	if params.Ref != "" {
 		opts.ReferenceName = plumbing.ReferenceName(expandRef(params.Ref))
 	}
-	_, err := git.PlainClone(params.Dir, false, opts)
-	return err
+	// disable depth if cloning a specific commit sha
+	if params.Sha == "" {
+		opts.Depth = c.depth
+	}
+
+	// clone the repository
+	r, err := git.PlainClone(params.Dir, false, opts)
+	if err != nil {
+		return err
+	}
+	if params.Sha == "" {
+		return nil
+	}
+
+	// checkout the sha
+	w, err := r.Worktree()
+	if err != nil {
+		return err
+	}
+	return w.Checkout(&git.CheckoutOptions{
+		Hash: plumbing.NewHash(params.Sha),
+	})
 }
