@@ -1,0 +1,10 @@
+deps:
+  brew:
+    - name: openvpn
+  apt_get:
+    - name: openvpn
+    - name: net-tools
+
+toolkit:
+  go:
+    package_name: github.com/bitrise-io/steps-fastlane

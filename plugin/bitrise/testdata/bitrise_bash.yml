@@ -1,0 +1,15 @@
+deps:
+  brew:
+    - name: openvpn
+  apt_get:
+    - name: openvpn
+    - name: net-tools
+
+toolkit:
+  bash:
+    entry_file: step.sh
+
+outputs:
+  - OPENVPN_LOG_PATH:
+    opts:
+      title: "Output log file path"
