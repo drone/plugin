@@ -39,7 +39,7 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 	}
 	if isHash(params.Ref) {
 		opts.ReferenceName = plumbing.ReferenceName(params.Ref)
-	} else {
+	} else if params.Ref != "" {
 		opts.ReferenceName = plumbing.ReferenceName(expandRef(params.Ref))
 	}
 	_, err := git.PlainClone(params.Dir, false, opts)

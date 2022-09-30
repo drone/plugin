@@ -62,6 +62,10 @@ func main() {
 	}
 
 	switch {
+	// execute harness plugin
+	case harness.Is(codedir):
+		// TODO
+
 	// execute bitrise plugin
 	case bitrise.Is(codedir):
 		execer := bitrise.Execer{
@@ -75,9 +79,6 @@ func main() {
 		if err := execer.Exec(ctx); err != nil {
 			os.Exit(1)
 		}
-	// execute harness plugin
-	case harness.Is(codedir):
-		// TODO
 
 	// execute github action
 	case github.Is(codedir):
