@@ -22,8 +22,7 @@
         "skip-dirs": [
             "vendor",
             "tests",
-            "pkg/client",
-            "pkg/generated"
+            "testdata"
         ],
         "tests": false,
         "timeout": "10m"
@@ -31,20 +30,8 @@
     "issues": {
         "exclude-rules": [
             {
-                "linters": "govet",
-                "text": "^(nilness|structtag)"
-            },
-            {
                 "linters": "revive",
-                "text": "should have comment"
-            },
-            {
-                "linters": "revive",
-                "text": "should be of the form"
-            },
-            {
-                "linters": "typecheck",
-                "text": "imported but not used as apierrors"
+                "text": "(plugin_|release_|repo_|sha_)"
             }
         ]
     }

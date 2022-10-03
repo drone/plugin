@@ -77,10 +77,21 @@ func main() {
 	switch {
 	// execute harness plugin
 	case harness.Is(codedir):
-		// TODO
+		log.Info("detected harness plugin.yml")
+		execer := harness.Execer{
+			Source:  codedir,
+			Workdir: workdir,
+			Environ: os.Environ(),
+			Stdout:  os.Stdout,
+			Stderr:  os.Stderr,
+		}
+		if err := execer.Exec(ctx); err != nil {
+			os.Exit(1)
+		}
 
 	// execute bitrise plugin
 	case bitrise.Is(codedir):
+		log.Info("detected bitrise step.yml")
 		execer := bitrise.Execer{
 			Source:  codedir,
 			Workdir: workdir,
@@ -88,13 +99,13 @@ func main() {
 			Stdout:  os.Stdout,
 			Stderr:  os.Stderr,
 		}
-
 		if err := execer.Exec(ctx); err != nil {
 			os.Exit(1)
 		}
 
 	// execute github action
 	case github.Is(codedir):
+		log.Info("detected github action.yml")
 		// TODO
 
 	default:

@@ -39,16 +39,14 @@ func ParseLookup(s string) (repo string, commit string, ok bool) {
 		// extract the version from the string, if provided.
 		if parts := strings.SplitN(s, "@", 2); len(parts) == 2 {
 			return parts[0], parts[1], true
-		} else {
-			return s, "", true
 		}
+		return s, "", true
 	}
 
 	if parts := strings.SplitN(s, "@", 2); len(parts) == 2 {
 		return Lookup(parts[0], parts[1])
-	} else {
-		return Lookup(s, "")
 	}
+	return Lookup(s, "")
 }
 
 type plugin struct {
