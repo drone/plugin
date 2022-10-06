@@ -13,35 +13,38 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 )
 
-// Default returns the default cloner.
-func Default() Cloner {
+// New returns a new cloner.
+func New(depth int, stdout io.Writer) Cloner {
 	return &cloner{
-		depth:  1,
-		remote: "origin",
-		stdout: os.Stdout,
+		depth:  depth,
+		stdout: stdout,
 	}
+}
+
+// NewDefault returns a cloner with default settings.
+func NewDefault() Cloner {
+	return New(1, os.Stdout)
 }
 
 // default cloner using the built-in Git client.
 type cloner struct {
 	depth  int
-	remote string
 	stdout io.Writer
 }
 
 // Clone the repository using the built-in Git client.
 func (c *cloner) Clone(ctx context.Context, params Params) error {
 	opts := &git.CloneOptions{
-		Depth:      c.depth,
+		RemoteName: "origin",
 		Progress:   c.stdout,
-		RemoteName: c.remote,
 		URL:        params.Repo,
 	}
 	// set the reference name if provided
 	if params.Ref != "" {
 		opts.ReferenceName = plumbing.ReferenceName(expandRef(params.Ref))
 	}
-	// disable depth if cloning a specific commit sha
+	// set depth if cloning the head commit of a branch as
+	// opposed to a specific commit sha
 	if params.Sha == "" {
 		opts.Depth = c.depth
 	}

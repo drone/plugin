@@ -62,7 +62,7 @@ func main() {
 	}
 
 	// clone the plugin repository
-	clone := cloner.Default()
+	clone := cloner.NewDefault()
 	err = clone.Clone(ctx, cloner.Params{
 		Repo: repo,
 		Ref:  ref,
