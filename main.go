@@ -55,11 +55,13 @@ func main() {
 
 	// directory to clone the plugin
 	codedir, err := ioutil.TempDir("", "")
-	defer os.RemoveAll(codedir)
 	if err != nil {
 		log.Error("cannot create clone dir", err)
 		os.Exit(1)
 	}
+	// remove the temporary clone directory
+	// after execution.
+	defer os.RemoveAll(codedir)
 
 	// clone the plugin repository
 	clone := cloner.NewDefault()
