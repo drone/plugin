@@ -18,6 +18,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// this script clones the Bitrise Step registry and generates a static
+// lookup table in Go code. The static lookup table can be used to lookup
+// a named Bitrise step (e.g slack) and determine the underlying repository
+// and commit sha.
 func main() {
 	out := flag.String("out", "lookup_gen.go", "output file")
 	flag.Parse()
