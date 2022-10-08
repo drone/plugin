@@ -97,9 +97,11 @@ func main() {
 		execer := bitrise.Execer{
 			Source:  codedir,
 			Workdir: workdir,
-			Environ: os.Environ(),
 			Stdout:  os.Stdout,
 			Stderr:  os.Stderr,
+			Environ: bitrise.Environ(
+				os.Environ(),
+			),
 		}
 		if err := execer.Exec(ctx); err != nil {
 			os.Exit(1)

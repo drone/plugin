@@ -31,11 +31,6 @@ func (e *Execer) Exec(ctx context.Context) error {
 		return err
 	}
 
-	// make a copy of the environment variables
-	// and convert harness-specifc environment
-	// variables to bitrise.
-	envs := convertEnv(e.Environ)
-
 	// install linux dependencies
 	if runtime.GOOS == "linux" {
 		if len(out.Deps.Aptget) > 0 {
@@ -43,7 +38,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 				Debug("apt-get update")
 
 			cmd := exec.Command("sudo", "apt-get", "update")
-			cmd.Env = envs
+			cmd.Env = e.Environ
 			cmd.Dir = e.Workdir
 			cmd.Stderr = e.Stderr
 			cmd.Stdout = e.Stdout
@@ -55,7 +50,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 				Debug("apt-get install", slog.String("package", item.Name))
 
 			cmd := exec.Command("sudo", "apt-get", "install", item.Name)
-			cmd.Env = envs
+			cmd.Env = e.Environ
 			cmd.Stderr = e.Stderr
 			cmd.Stdout = e.Stdout
 			cmd.Run()
@@ -69,7 +64,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 				Debug("brew install", slog.String("package", item.Name))
 
 			cmd := exec.Command("brew", "install", item.Name)
-			cmd.Env = envs
+			cmd.Env = e.Environ
 			cmd.Dir = e.Workdir
 			cmd.Stderr = e.Stderr
 			cmd.Stdout = e.Stdout
@@ -88,7 +83,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 		// compile the code
 		binpath := filepath.Join(e.Source, "step.exe")
 		cmd := exec.Command("go", "build", "-o", binpath, module)
-		cmd.Env = envs
+		cmd.Env = e.Environ
 		cmd.Dir = e.Source
 		cmd.Stderr = e.Stderr
 		cmd.Stdout = e.Stdout
@@ -101,7 +96,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 
 		// execute the binary
 		cmd = exec.Command(binpath)
-		cmd.Env = envs
+		cmd.Env = e.Environ
 		cmd.Dir = e.Workdir
 		cmd.Stderr = e.Stderr
 		cmd.Stdout = e.Stdout
@@ -128,7 +123,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 
 		// execute the binary
 		cmd := exec.Command(shell, path)
-		cmd.Env = envs
+		cmd.Env = e.Environ
 		cmd.Dir = e.Workdir
 		cmd.Stderr = e.Stderr
 		cmd.Stdout = e.Stdout

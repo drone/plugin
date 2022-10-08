@@ -10,9 +10,9 @@ import (
 	"github.com/drone/plugin/plugin/internal/environ"
 )
 
-// helper function converts harness environment variables
-// to bitrise environment variables.
-func convertEnv(src []string) []string {
+// Environ function converts harness or drone environment
+// variables to bitrise environment variables.
+func Environ(src []string) []string {
 	// make a copy of the environment variables
 	dst := environ.Map(src)
 
