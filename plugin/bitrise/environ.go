@@ -43,16 +43,16 @@ func Environ(src []string) []string {
 		"GIT_REPOSITORY_URL":                    dst["DRONE_REMOTE_URL"],
 		"GIT_CLONE_COMMIT_HASH":                 dst["DRONE_COMMIT_SHA"],
 		"GIT_CLONE_COMMIT_MESSAGE_SUBJECT":      dst["DRONE_COMMIT_MESSAGE"],
-		"GIT_CLONE_COMMIT_MESSAGE_BODY":         "", // TODO
-		"GIT_CLONE_COMMIT_COUNT":                "1",
+		"GIT_CLONE_COMMIT_MESSAGE_BODY":         "",  // NOT SUPPORTED
+		"GIT_CLONE_COMMIT_COUNT":                "1", // NOT SUPPORTED
 		"GIT_CLONE_COMMIT_AUTHOR_NAME":          dst["DRONE_COMMIT_AUTHOR_NAME"],
 		"GIT_CLONE_COMMIT_AUTHOR_EMAIL":         dst["DRONE_COMMIT_AUTHOR_EMAIL"],
 		"GIT_CLONE_COMMIT_COMMITER_NAME":        dst["DRONE_COMMIT_AUTHOR_NAME"],
 		"GIT_CLONE_COMMIT_COMMITER_EMAIL":       dst["DRONE_COMMIT_AUTHOR_EMAIL"],
-		"BITRISEIO_GIT_REPOSITORY_OWNER":        "", // TODO
-		"BITRISEIO_GIT_REPOSITORY_SLUG":         "", // TODO
+		"BITRISEIO_GIT_REPOSITORY_SLUG":         dst["DRONE_REPO"],
+		"BITRISEIO_GIT_REPOSITORY_OWNER":        extractOwner(dst["DRONE_REPO"]),
 		"BITRISEIO_GIT_BRANCH_DEST":             dst["DRONE_TARGET_BRANCH"],
-		"BITRISEIO_PULL_REQUEST_REPOSITORY_URL": "", // TODO
+		"BITRISEIO_PULL_REQUEST_REPOSITORY_URL": dst["DRONE_COMMIT_LINK"],
 		"BITRISEIO_PULL_REQUEST_MERGE_BRANCH":   dst["DRONE_SOURCE_BRANCH"],
 		"BITRISEIO_PULL_REQUEST_HEAD_BRANCH":    dst["DRONE_TARGET_BRANCH"],
 		"BITRISEIO_PIPELINE_ID":                 "", // TODO
@@ -63,8 +63,8 @@ func Environ(src []string) []string {
 		"BITRISE_GIT_MESSAGE":                   dst["DRONE_COMMIT_MESSAGE"],
 		"BITRISE_BUILD_NUMBER":                  dst["DRONE_BUILD_NUMBER"],
 		"BITRISE_BUILD_URL":                     dst["DRONE_BUILD_LINK"],
-		"BITRISE_BUILD_SLUG":                    "", // TODO
-		"BITRISE_BUILD_TRIGGER_TIMESTAMP":       "", // TODO
+		"BITRISE_BUILD_SLUG":                    dst["DRONE_BUILD_NUMBER"],
+		"BITRISE_BUILD_TRIGGER_TIMESTAMP":       dst["DRONE_BUILD_CREATED"],
 		"BITRISE_PULL_REQUEST":                  dst["DRONE_PULL_REQUEST"],
 		"BITRISE_SOURCE_DIR":                    dst["DRONE_WORKSPACE"],
 		"BITRISE_DEPLOY_DIR":                    "", // TODO
@@ -89,4 +89,12 @@ func Environ(src []string) []string {
 	}
 
 	return environ.Slice(dst)
+}
+
+// extract owner from a repository slug.
+func extractOwner(s string) (owner string) {
+	if parts := strings.Split(s, "/"); len(parts) == 2 {
+		return parts[0]
+	}
+	return
 }

@@ -6,9 +6,8 @@ package docker
 
 import "strings"
 
-// Is returns true if the string can be identified as a
-// docker image. This function only recognizes well-known
-// docker registry urls.
+// Is returns true if string s is a docker image. This
+// function only recognizes well-known docker registry urls.
 func Is(s string) bool {
 	// the string is a docker image if prefixed with docker://
 	if strings.HasPrefix(s, "docker://") ||
