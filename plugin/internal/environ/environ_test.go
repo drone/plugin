@@ -23,6 +23,23 @@ func TestSlice(t *testing.T) {
 	}
 }
 
+func TestMap(t *testing.T) {
+	v := []string{
+		"CI=true",
+		"DRONE=true",
+		"IGNORE_ME", // should be ignored
+	}
+	a := Map(v)
+	b := map[string]string{
+		"CI":    "true",
+		"DRONE": "true",
+	}
+	if diff := cmp.Diff(a, b); diff != "" {
+		t.Fail()
+		t.Log(diff)
+	}
+}
+
 func TestCombine(t *testing.T) {
 	v1 := map[string]string{
 		"CI":    "true",
