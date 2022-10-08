@@ -5,7 +5,9 @@
 package bitrise
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/drone/plugin/plugin/internal/environ"
 )
@@ -50,32 +52,32 @@ func Environ(src []string) []string {
 		"GIT_CLONE_COMMIT_COMMITER_NAME":        dst["DRONE_COMMIT_AUTHOR_NAME"],
 		"GIT_CLONE_COMMIT_COMMITER_EMAIL":       dst["DRONE_COMMIT_AUTHOR_EMAIL"],
 		"BITRISEIO_GIT_REPOSITORY_SLUG":         dst["DRONE_REPO"],
-		"BITRISEIO_GIT_REPOSITORY_OWNER":        extractOwner(dst["DRONE_REPO"]),
+		"BITRISEIO_GIT_REPOSITORY_OWNER":        parseOwner(dst["DRONE_REPO"]),
 		"BITRISEIO_GIT_BRANCH_DEST":             dst["DRONE_TARGET_BRANCH"],
 		"BITRISEIO_PULL_REQUEST_REPOSITORY_URL": dst["DRONE_COMMIT_LINK"],
 		"BITRISEIO_PULL_REQUEST_MERGE_BRANCH":   dst["DRONE_SOURCE_BRANCH"],
 		"BITRISEIO_PULL_REQUEST_HEAD_BRANCH":    dst["DRONE_TARGET_BRANCH"],
-		"BITRISEIO_PIPELINE_ID":                 "", // TODO
-		"BITRISEIO_PIPELINE_TITLE":              "", // TODO
+		"BITRISEIO_PIPELINE_ID":                 firstMatch(dst, "HARNESS_PIPELINE_ID", "DRONE_STAGE_NAME"),
+		"BITRISEIO_PIPELINE_TITLE":              firstMatch(dst, "HARNESS_PIPELINE_ID", "DRONE_STAGE_NAME"),
 		"BITRISE_GIT_BRANCH":                    dst["DRONE_BRANCH"],
 		"BITRISE_GIT_TAG":                       dst["DRONE_TAG"],
 		"BITRISE_GIT_COMMIT":                    dst["DRONE_COMMIT_SHA"],
 		"BITRISE_GIT_MESSAGE":                   dst["DRONE_COMMIT_MESSAGE"],
 		"BITRISE_BUILD_NUMBER":                  dst["DRONE_BUILD_NUMBER"],
-		"BITRISE_BUILD_URL":                     dst["DRONE_BUILD_LINK"],
+		"BITRISE_BUILD_URL":                     dst["DRONE_BUILD_LINK"], // MISSING IN HARNESS
 		"BITRISE_BUILD_SLUG":                    dst["DRONE_BUILD_NUMBER"],
-		"BITRISE_BUILD_TRIGGER_TIMESTAMP":       dst["DRONE_BUILD_CREATED"],
-		"BITRISE_PULL_REQUEST":                  dst["DRONE_PULL_REQUEST"],
-		"BITRISE_SOURCE_DIR":                    dst["DRONE_WORKSPACE"],
-		"BITRISE_DEPLOY_DIR":                    "", // TODO
-		"BITRISE_TRIGGERED_WORKFLOW_ID":         "", // TODO
-		"BITRISE_TRIGGERED_WORKFLOW_TITLE":      "", // TODO
-		"BITRISE_APP_TITLE":                     "", // TODO
-		"BITRISE_APP_URL":                       "", // TODO
-		"BITRISE_APP_SLUG":                      "", // TODO
-		"BITRISE_PROVISION_URL":                 "", // TODO
-		"BITRISE_CERTIFICATE_URL":               "", // TODO
-		"BITRISE_CERTIFICATE_PASSPHRASE":        "", // TODO
+		"BITRISE_BUILD_TRIGGER_TIMESTAMP":       dst["DRONE_BUILD_CREATED"],                              // MISSING IN HARNESS
+		"BITRISE_PULL_REQUEST":                  dst["DRONE_PULL_REQUEST"],                               // MISSING IN HARNESS
+		"BITRISE_SOURCE_DIR":                    firstMatch(dst, "DRONE_WORKSPACE", "HARNESS_WORKSPACE"), // MISSING IN HARNESS
+		"BITRISE_DEPLOY_DIR":                    "",                                                      // TODO
+		"BITRISE_TRIGGERED_WORKFLOW_ID":         "",                                                      // TODO
+		"BITRISE_TRIGGERED_WORKFLOW_TITLE":      "",                                                      // TODO
+		"BITRISE_APP_TITLE":                     "",                                                      // TODO
+		"BITRISE_APP_URL":                       "",                                                      // TODO
+		"BITRISE_APP_SLUG":                      "",                                                      // TODO
+		"BITRISE_PROVISION_URL":                 "",                                                      // TODO
+		"BITRISE_CERTIFICATE_URL":               "",                                                      // TODO
+		"BITRISE_CERTIFICATE_PASSPHRASE":        "",                                                      // TODO
 	})
 
 	// is pipeline a pull request?
@@ -83,16 +85,35 @@ func Environ(src []string) []string {
 		dst["PR"] = "true"
 	}
 
+	// if the build creation timestamp is not present,
+	// use the current unix timestamp.
+	//
+	// TODO remove this once Harness supports DRONE_BUILD_CREATED
+	if dst["BITRISE_BUILD_TRIGGER_TIMESTAMP"] == "" {
+		dst["BITRISE_BUILD_TRIGGER_TIMESTAMP"] = fmt.Sprint(time.Now().Unix())
+	}
+
 	// is pipeline in a failing state?
-	if dst["DRONE_BUILD_STATUS"] == "failure" {
+	if dst["DRONE_BUILD_STATUS"] == "failure" { // MISSING IN HARNESS
 		dst["BITRISE_BUILD_STATUS"] = "1"
 	}
 
 	return environ.Slice(dst)
 }
 
-// extract owner from a repository slug.
-func extractOwner(s string) (owner string) {
+// helper function find the first matching environment
+// variable in the map.
+func firstMatch(envs map[string]string, keys ...string) (val string) {
+	for _, key := range keys {
+		if env, ok := envs[key]; ok {
+			return env
+		}
+	}
+	return
+}
+
+// helper function gets the owner from a repository slug.
+func parseOwner(s string) (owner string) {
 	if parts := strings.Split(s, "/"); len(parts) == 2 {
 		return parts[0]
 	}
