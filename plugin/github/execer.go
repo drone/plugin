@@ -10,8 +10,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
-	"strings"
 
 	"github.com/drone/plugin/plugin/internal/environ"
 	"github.com/nektos/act/cmd"
@@ -64,10 +62,4 @@ func (e *Execer) Exec(ctx context.Context) error {
 
 	cmd.Execute(ctx, "1.1")
 	return nil
-}
-
-// trace writes each command to stdout with the command wrapped in an xml
-// tag so that it can be extracted and displayed in the logs.
-func trace(cmd *exec.Cmd) {
-	fmt.Fprintf(os.Stdout, "+ %s\n", strings.Join(cmd.Args, " "))
 }
