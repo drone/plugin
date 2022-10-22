@@ -33,11 +33,7 @@ Execute a Bitrise plugin:
 plugin -repo https://github.com/bradrydzewski/test-step.git -ref main
 ```
 
-Execute a github action:
-
-```
-plugin -repo https://github.com/bradrydzewski/test-step.git -ref main
-```
+Execute below github action:
 
 ```console
 steps:
