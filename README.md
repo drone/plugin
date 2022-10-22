@@ -32,3 +32,28 @@ Execute a Bitrise plugin:
 ```
 plugin -repo https://github.com/bradrydzewski/test-step.git -ref main
 ```
+
+Execute a github action:
+
+```
+plugin -repo https://github.com/bradrydzewski/test-step.git -ref main
+```
+
+```console
+steps:
+- name: action
+  type: action
+  spec:
+    uses: actions/hello-world-javascript-action@v1.1
+    settings:
+        who-to-greet: Mona the Octocat
+    env:
+        hello: world
+```
+
+```
+export PLUGIN_WITH="{ \"who-to-greet\": \"Mona the Octocat\" }"
+export hello=world
+
+plugin -type action -name actions/hello-world-javascript-action@v1.1 -repo https://github.com/actions/hello-world-javascript-action.git
+```

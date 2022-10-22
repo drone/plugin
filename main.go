@@ -36,7 +36,22 @@ func main() {
 	flag.StringVar(&repo, "repo", "", "plugin repository")
 	flag.StringVar(&ref, "ref", "", "plugin reference")
 	flag.StringVar(&sha, "sha", "", "plugin commit")
+	flag.StringVar(&kind, "kind", "", "plugin kind")
 	flag.Parse()
+
+	if kind == "action" {
+		execer := github.Execer{
+			Name:    name,
+			Stdout:  os.Stdout,
+			Stderr:  os.Stderr,
+			Environ: os.Environ(),
+		}
+		if err := execer.Exec(ctx); err != nil {
+			log.Error("action step failed", err)
+			os.Exit(1)
+		}
+		return
+	}
 
 	// the user may specific the harness plugin alias instead
 	// of the git repository. We are able to lookup the plugin
@@ -120,12 +135,6 @@ func main() {
 		if err := execer.Exec(ctx); err != nil {
 			os.Exit(1)
 		}
-
-	// execute github action
-	case github.Is(codedir) || kind == "action":
-		log.Info("detected github action.yml")
-		// TODO
-
 	default:
 		log.Info("unknown plugin type")
 		os.Exit(1)

@@ -17,5 +17,10 @@ func Is(root string) bool {
 	if _, err := os.Stat(path); err == nil {
 		return true
 	}
+
+	path = filepath.Join(root, "action.yaml")
+	if _, err := os.Stat(path); err == nil {
+		return true
+	}
 	return false
 }
