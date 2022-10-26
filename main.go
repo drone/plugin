@@ -23,6 +23,7 @@ var (
 	repo string // plugin repository
 	ref  string // plugin repository reference
 	sha  string // plugin repository commit
+	kind string // plugin kind (action, bitrise, harness)
 )
 
 func main() {
@@ -37,13 +38,26 @@ func main() {
 	flag.StringVar(&sha, "sha", "", "plugin commit")
 	flag.Parse()
 
+	// the user may specific the harness plugin alias instead
+	// of the git repository. We are able to lookup the plugin
+	// by alias to find the corresponding repository and commit.
+	if repo == "" && kind != "bitrise" {
+		repo_, sha_, ok := harness.ParseLookup(name)
+		if ok {
+			repo = repo_
+			sha = sha_
+		}
+	}
+
 	// the user may specific the bitrise plugin alias instead
 	// of the git repository. We are able to lookup the plugin
 	// by alias to find the corresponding repository and commit.
-	repo_, sha_, ok := bitrise.ParseLookup(name)
-	if ok {
-		repo = repo_
-		sha = sha_
+	if repo == "" && kind != "harness" {
+		repo_, sha_, ok := bitrise.ParseLookup(name)
+		if ok {
+			repo = repo_
+			sha = sha_
+		}
 	}
 
 	// current working directory (workspace)
@@ -78,7 +92,7 @@ func main() {
 
 	switch {
 	// execute harness plugin
-	case harness.Is(codedir):
+	case harness.Is(codedir) || kind == "harness":
 		log.Info("detected harness plugin.yml")
 		execer := harness.Execer{
 			Source:  codedir,
@@ -92,7 +106,7 @@ func main() {
 		}
 
 	// execute bitrise plugin
-	case bitrise.Is(codedir):
+	case bitrise.Is(codedir) || kind == "bitrise":
 		log.Info("detected bitrise step.yml")
 		execer := bitrise.Execer{
 			Source:  codedir,
@@ -108,7 +122,7 @@ func main() {
 		}
 
 	// execute github action
-	case github.Is(codedir):
+	case github.Is(codedir) || kind == "action":
 		log.Info("detected github action.yml")
 		// TODO
 
