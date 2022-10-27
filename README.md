@@ -51,5 +51,5 @@ steps:
 export PLUGIN_WITH="{ \"who-to-greet\": \"Mona the Octocat\" }"
 export hello=world
 
-plugin -type action -name actions/hello-world-javascript-action@v1.1 -repo https://github.com/actions/hello-world-javascript-action.git
+plugin -type action -name actions/hello-world-javascript-action@v1.1
 ```

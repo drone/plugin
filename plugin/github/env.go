@@ -8,11 +8,11 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/drone/plugin/pkg/encoder"
+	"github.com/drone/plugin/plugin/internal/encoder"
 	"github.com/pkg/errors"
 )
 
-func GetWith(envVars map[string]string) (map[string]string, error) {
+func getWith(envVars map[string]string) (map[string]string, error) {
 	if val, ok := envVars["PLUGIN_WITH"]; ok {
 		with, err := strToMap(val)
 		if err != nil {
@@ -24,7 +24,7 @@ func GetWith(envVars map[string]string) (map[string]string, error) {
 	return nil, nil
 }
 
-func GetEnv(envVars map[string]string) map[string]string {
+func getEnv(envVars map[string]string) map[string]string {
 	dst := make(map[string]string)
 	// convert drone environment variables to bitrise
 	// environment variables

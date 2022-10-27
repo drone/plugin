@@ -38,11 +38,11 @@ const (
 )
 
 func createWorkflowFile(ymlFile, action string, envVars map[string]string) error {
-	with, err := GetWith(envVars)
+	with, err := getWith(envVars)
 	if err != nil {
 		return err
 	}
-	env := GetEnv(envVars)
+	env := getEnv(envVars)
 	j := job{
 		Name:   jobName,
 		RunsOn: runsOnImage,

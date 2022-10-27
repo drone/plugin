@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/drone/plugin/plugin/internal/environ"
 	"github.com/nektos/act/cmd"
@@ -31,7 +32,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	workflowFile := fmt.Sprintf("%s/workflow.yml", tmpDir)
+	workflowFile := filepath.Join(tmpDir, "workflow.yml")
 
 	if err := createWorkflowFile(workflowFile, e.Name, envVars); err != nil {
 		return err
@@ -51,7 +52,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	}
 
 	if eventPayload, ok := envVars["PLUGIN_EVENT_PAYLOAD"]; ok {
-		eventPayloadFile := fmt.Sprintf("%s/event.yml", tmpDir)
+		eventPayloadFile := filepath.Join(tmpDir, "event.yml")
 
 		if err := ioutil.WriteFile(eventPayloadFile, []byte(eventPayload), 0644); err != nil {
 			return errors.Wrap(err, "failed to write event payload to file")
