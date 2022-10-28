@@ -5,8 +5,10 @@
 package github
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -25,9 +27,11 @@ type job struct {
 }
 
 type step struct {
-	Uses string            `yaml:"uses"`
-	With map[string]string `yaml:"with"`
-	Env  map[string]string `yaml:"env"`
+	Uses string            `yaml:"uses,omitempty"`
+	Name string            `yaml:"name,omitempty"`
+	With map[string]string `yaml:"with,omitempty"`
+	Env  map[string]string `yaml:"env,omitempty"`
+	Run  string            `yaml:"run,omitempty"`
 }
 
 const (
@@ -37,7 +41,8 @@ const (
 	runsOnImage   = "-self-hosted"
 )
 
-func createWorkflowFile(ymlFile, action string, envVars map[string]string) error {
+func createWorkflowFile(action string, envVars map[string]string,
+	ymlFile, beforeStepEnvFile, afterStepEnvFile string) error {
 	with, err := getWith(envVars)
 	if err != nil {
 		return err
@@ -48,9 +53,17 @@ func createWorkflowFile(ymlFile, action string, envVars map[string]string) error
 		RunsOn: runsOnImage,
 		Steps: []step{
 			{
+				Name: "before",
+				Run:  getActionCmd(beforeStepEnvFile),
+			},
+			{
 				Uses: action,
 				With: with,
 				Env:  env,
+			},
+			{
+				Name: "after",
+				Run:  getActionCmd(afterStepEnvFile),
 			},
 		},
 	}
@@ -80,4 +93,13 @@ func getWorkflowEvent() string {
 		return buildEvent
 	}
 	return "custom"
+}
+
+func getActionCmd(envFile string) string {
+	cmd := fmt.Sprintf("printenv > %s", envFile)
+	if runtime.GOOS == "windows" {
+		cmd = fmt.Sprintf("SET | Out-File -Path %s", envFile)
+	}
+
+	return cmd
 }

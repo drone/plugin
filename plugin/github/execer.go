@@ -32,9 +32,11 @@ func (e *Execer) Exec(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	workflowFile := filepath.Join(tmpDir, "workflow.yml")
 
-	if err := createWorkflowFile(workflowFile, e.Name, envVars); err != nil {
+	workflowFile := filepath.Join(tmpDir, "workflow.yml")
+	beforeStepEnvFile := filepath.Join(tmpDir, "before.env")
+	afterStepEnvFile := filepath.Join(tmpDir, "after.env")
+	if err := createWorkflowFile(e.Name, envVars, workflowFile, beforeStepEnvFile, afterStepEnvFile); err != nil {
 		return err
 	}
 
@@ -62,5 +64,9 @@ func (e *Execer) Exec(ctx context.Context) error {
 	}
 
 	cmd.Execute(ctx, "1.1")
+
+	if err := exportEnv(beforeStepEnvFile, afterStepEnvFile); err != nil {
+		return err
+	}
 	return nil
 }
