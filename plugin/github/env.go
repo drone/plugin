@@ -26,12 +26,7 @@ func getWith(envVars map[string]string) (map[string]string, error) {
 
 func getEnv(envVars map[string]string) map[string]string {
 	dst := make(map[string]string)
-	// convert drone environment variables to bitrise
-	// environment variables
 	for key, val := range envVars {
-		// drone prefixes plugin input parameters, bitrise
-		// does not. trim the prefix and convert to lowercase
-		// for bitrise compatibility.
 		if !strings.HasPrefix(key, "PLUGIN_") {
 			dst[key] = val
 		}
