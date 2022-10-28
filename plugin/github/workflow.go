@@ -101,7 +101,7 @@ func prePostStep(name, envFile string) step {
 		Run:  cmd,
 	}
 	if runtime.GOOS == "windows" {
-		s.Shell = "pwsh"
+		s.Shell = "powershell"
 	}
 	return s
 }
