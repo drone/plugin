@@ -27,11 +27,12 @@ type job struct {
 }
 
 type step struct {
-	Uses string            `yaml:"uses,omitempty"`
-	Name string            `yaml:"name,omitempty"`
-	With map[string]string `yaml:"with,omitempty"`
-	Env  map[string]string `yaml:"env,omitempty"`
-	Run  string            `yaml:"run,omitempty"`
+	Uses  string            `yaml:"uses,omitempty"`
+	Name  string            `yaml:"name,omitempty"`
+	With  map[string]string `yaml:"with,omitempty"`
+	Env   map[string]string `yaml:"env,omitempty"`
+	Run   string            `yaml:"run,omitempty"`
+	Shell string            `yaml:"shell,omitempty"`
 }
 
 const (
@@ -52,19 +53,13 @@ func createWorkflowFile(action string, envVars map[string]string,
 		Name:   jobName,
 		RunsOn: runsOnImage,
 		Steps: []step{
-			{
-				Name: "before",
-				Run:  getEnvExportCmd(beforeStepEnvFile),
-			},
+			prePostStep("before", beforeStepEnvFile),
 			{
 				Uses: action,
 				With: with,
 				Env:  env,
 			},
-			{
-				Name: "after",
-				Run:  getEnvExportCmd(afterStepEnvFile),
-			},
+			prePostStep("after", afterStepEnvFile),
 		},
 	}
 	wf := &workflow{
@@ -95,11 +90,18 @@ func getWorkflowEvent() string {
 	return "custom"
 }
 
-func getEnvExportCmd(envFile string) string {
+func prePostStep(name, envFile string) step {
 	cmd := fmt.Sprintf("printenv > %s", envFile)
 	if runtime.GOOS == "windows" {
 		cmd = fmt.Sprintf("cmd.exe /c \"SET > %s\"", envFile)
 	}
 
-	return cmd
+	s := step{
+		Name: name,
+		Run:  cmd,
+	}
+	if runtime.GOOS == "windows" {
+		s.Shell = "pwsh"
+	}
+	return s
 }
