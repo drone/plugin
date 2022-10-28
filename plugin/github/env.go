@@ -38,7 +38,7 @@ func getEnv(envVars map[string]string) map[string]string {
 }
 
 // exportEnv outputs the environment variables produced by the action.
-// Diff of env is calculated before and after the action to determine
+// Diff of env is calculated before and after the action execution to determine
 // the environment variables to export.
 func exportEnv(before, after string) error {
 	diff := diffEnv(before, after)

@@ -54,7 +54,7 @@ func createWorkflowFile(action string, envVars map[string]string,
 		Steps: []step{
 			{
 				Name: "before",
-				Run:  getActionCmd(beforeStepEnvFile),
+				Run:  getEnvExportCmd(beforeStepEnvFile),
 			},
 			{
 				Uses: action,
@@ -63,7 +63,7 @@ func createWorkflowFile(action string, envVars map[string]string,
 			},
 			{
 				Name: "after",
-				Run:  getActionCmd(afterStepEnvFile),
+				Run:  getEnvExportCmd(afterStepEnvFile),
 			},
 		},
 	}
@@ -95,10 +95,10 @@ func getWorkflowEvent() string {
 	return "custom"
 }
 
-func getActionCmd(envFile string) string {
+func getEnvExportCmd(envFile string) string {
 	cmd := fmt.Sprintf("printenv > %s", envFile)
 	if runtime.GOOS == "windows" {
-		cmd = fmt.Sprintf("SET | Out-File -Path %s", envFile)
+		cmd = fmt.Sprintf("cmd.exe /c \"SET > %s\"", envFile)
 	}
 
 	return cmd
