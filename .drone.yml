@@ -1,0 +1,21 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+- name: build
+  image: golang:1.19
+  commands:
+  - CGO_ENABLED=0 go build -ldflags "-extldflags \"-static\"" -o release/linux/amd64/plugin
+- name: release amd64 binary
+  image: plugins/github-release
+  settings:
+    files:
+      - release/linux/amd64/plugin
+    api_key:
+      from_secret: github_token
+  when:
+    ref:
+      - refs/tags/*
+  depends_on:
+    - build

@@ -41,7 +41,7 @@ steps:
   type: action
   spec:
     uses: actions/hello-world-javascript-action@v1.1
-    settings:
+    with:
         who-to-greet: Mona the Octocat
     env:
         hello: world
@@ -58,5 +58,5 @@ Run on windows
 ```powershell
 $env:PLUGIN_WITH = '{ "distribution": "temurin", "java-version": "17" }'
 $env:DRONE_ENV = 'C:\Users\Administrator\drone.env'
-plugin run main.go -kind action -name actions/setup-java@v3
+plugin -kind action -name actions/setup-java@v3
 ```
