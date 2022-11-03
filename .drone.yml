@@ -6,12 +6,21 @@ steps:
 - name: build
   image: golang:1.19
   commands:
-  - CGO_ENABLED=0 go build -ldflags "-extldflags \"-static\"" -o release/linux/amd64/plugin
+  - go test ./...
+  - GOOS=linux   GOARCH=amd64   go build -o release/plugin-linux-amd64
+  - GOOS=linux   GOARCH=arm64   go build -o release/plugin-linux-arm64
+  - GOOS=darwin  GOARCH=amd64   go build -o release/plugin-darwin-amd64
+  - GOOS=darwin  GOARCH=arm64   go build -o release/plugin-darwin-arm64
+  - GOOS=windows GOARCH=amd64   go build -o release/plugin-windows-amd64.exe
 - name: release amd64 binary
   image: plugins/github-release
   settings:
     files:
-      - release/linux/amd64/plugin
+      - release/plugin-linux-amd64
+      - release/plugin-linux-arm64
+      - release/plugin-darwin-amd64
+      - release/plugin-darwin-arm64
+      - release/plugin-windows-amd64.exe
     api_key:
       from_secret: github_token
   when:
