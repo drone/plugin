@@ -5,7 +5,9 @@
 package github
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +15,7 @@ import (
 	"github.com/drone/plugin/plugin/internal/encoder"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
+	"golang.org/x/exp/slog"
 )
 
 func getWith(envVars map[string]string) (map[string]string, error) {
@@ -63,10 +66,18 @@ func exportEnv(before, after string) error {
 // diffEnv takes diff of environment variables present in
 // after and before file
 func diffEnv(before, after string) map[string]string {
-	beforeEnv, _ := godotenv.Read(before)
-	afterEnv, _ := godotenv.Read(after)
+	log := slog.Default()
 
-	diff := make(map[string]string)
+	beforeEnv, err := godotenv.Read(before)
+	if err != nil {
+		log.Warn(fmt.Sprintf("failed to read before env file: %s", err))
+	}
+	afterEnv, err := godotenv.Read(after)
+	if err != nil {
+		log.Warn(fmt.Sprintf("failed to read after env file: %s", err))
+	}
+
+	diffB64 := make(map[string]string)
 	for k, v := range afterEnv {
 		if strings.HasPrefix(k, "GITHUB_") {
 			continue
@@ -74,10 +85,21 @@ func diffEnv(before, after string) map[string]string {
 
 		if a, ok := beforeEnv[k]; ok {
 			if v != a {
-				diff[k] = v
+				diffB64[k] = v
 			}
 		} else {
-			diff[k] = v
+			diffB64[k] = v
+		}
+	}
+
+	// Base64 decode env values
+	diff := make(map[string]string)
+	for k, v := range diffB64 {
+		data, err := base64.StdEncoding.DecodeString(v)
+		if err == nil {
+			diff[k] = string(data)
+		} else {
+			log.Warn(fmt.Sprintf("failed to decode env value: %s", string(data)))
 		}
 	}
 	return diff

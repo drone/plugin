@@ -91,11 +91,7 @@ func getWorkflowEvent() string {
 }
 
 func prePostStep(name, envFile string) step {
-	cmd := fmt.Sprintf("printenv > %s", envFile)
-	if runtime.GOOS == "windows" {
-		cmd = fmt.Sprintf("cmd.exe /c \"SET > %s\"", envFile)
-	}
-
+	cmd := fmt.Sprintf("python -c 'import os; import base64; [print(k+\"=\"+str(base64.b64encode(bytes(v, \"utf-8\")), \"utf-8\")) for k, v in os.environ.items()]' > %s", envFile)
 	s := step{
 		Name: name,
 		Run:  cmd,
