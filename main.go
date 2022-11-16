@@ -117,6 +117,7 @@ func main() {
 			Stderr:  os.Stderr,
 		}
 		if err := execer.Exec(ctx); err != nil {
+			log.Error("step failed", err)
 			os.Exit(1)
 		}
 
@@ -133,6 +134,7 @@ func main() {
 			),
 		}
 		if err := execer.Exec(ctx); err != nil {
+			log.Error("step failed", err)
 			os.Exit(1)
 		}
 	default:
