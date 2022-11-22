@@ -36,10 +36,12 @@ func ParseLookup(s string) (repo string, commit string, ok bool) {
 		// trim the git:: prefix
 		s = strings.TrimPrefix(s, "git::")
 
-		// preped the https scheme if not includes in the
+		// prepend the https scheme if not includes in the
 		// github repository url.
 		if strings.HasPrefix(s, "github.com") {
 			s = "https://" + s
+			// append the .git suffix to the github
+			// repository url if not provided.
 			if !strings.HasSuffix(s, ".git") {
 				s = s + ".git"
 			}
