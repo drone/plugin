@@ -32,3 +32,31 @@ Execute a Bitrise plugin:
 ```
 plugin -repo https://github.com/bradrydzewski/test-step.git -ref main
 ```
+
+Execute below github action:
+
+```console
+steps:
+- name: action
+  type: action
+  spec:
+    uses: actions/hello-world-javascript-action@v1.1
+    with:
+        who-to-greet: Mona the Octocat
+    env:
+        hello: world
+```
+Run on linux
+```shell
+export PLUGIN_WITH="{ \"who-to-greet\": \"Mona the Octocat\" }"
+export hello=world
+
+plugin -kind action -name actions/hello-world-javascript-action@v1.1
+```
+
+Run on windows
+```powershell
+$env:PLUGIN_WITH = '{ "distribution": "temurin", "java-version": "17" }'
+$env:DRONE_ENV = 'C:\Users\Administrator\drone.env'
+plugin -kind action -name actions/setup-java@v3
+```
