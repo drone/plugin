@@ -19,7 +19,8 @@ type spec struct {
 			Entryfile string `yaml:"entry_file"`
 		}
 		Go struct {
-			Module string
+			Module      string
+			PackageName string `yaml:"package_name"`
 		}
 	}
 }

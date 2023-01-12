@@ -21,6 +21,7 @@ func parse(b []byte) (*spec, error) {
 	// other default entrypoint or module are
 	// provided.
 	if out.Toolkit.Go.Module == "" &&
+		out.Toolkit.Go.PackageName == "" &&
 		out.Toolkit.Bash.Entryfile == "" {
 		out.Toolkit.Bash.Entryfile = "step.sh"
 	}
