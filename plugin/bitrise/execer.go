@@ -72,9 +72,13 @@ func (e *Execer) Exec(ctx context.Context) error {
 		}
 	}
 
+	module := out.Toolkit.Go.Module
+	if module == "" {
+		module = out.Toolkit.Go.PackageName
+	}
 	// execute the plugin. the execution logic differs
 	// based on programming language.
-	if module := out.Toolkit.Go.Module; module != "" {
+	if module != "" {
 		// if the plugin is a Go module
 
 		slog.FromContext(ctx).
