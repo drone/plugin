@@ -82,7 +82,6 @@ func (e *Execer) Exec(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-
 		binpath, err := downloadFile(parsedURL)
 		if err != nil {
 			return err

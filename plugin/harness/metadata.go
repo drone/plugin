@@ -37,14 +37,14 @@ func (g *Metadata) Generate() (string, error) {
 		return "", errors.Wrap(err, fmt.Sprintf("invalid source: %s", g.tmpl))
 	}
 
-	if err = t.Execute(sb, nil); err != nil {
+	if err = t.Execute(sb, struct{}{}); err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("invalid source: %s", g.tmpl))
 	}
 	return sb.String(), nil
 }
 
-func releaseFunc(ref string) func(string) string {
-	return func(p string) string {
+func releaseFunc(ref string) func() string {
+	return func() string {
 		if strings.HasPrefix(ref, "refs/tags/") {
 			return strings.TrimPrefix(ref, "refs/tags/")
 		}
