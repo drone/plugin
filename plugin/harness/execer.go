@@ -6,16 +6,22 @@ package harness
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"net/http"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
+	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"
 )
 
 // Execer executes a harness plugin.
 type Execer struct {
+	Ref     string
 	Source  string // plugin source code directory
 	Workdir string // pipeline working directory (aka workspace)
 	Environ []string
@@ -71,7 +77,27 @@ func (e *Execer) Exec(ctx context.Context) error {
 
 	// execute the plugin. the execution logic differs
 	// based on programming language.
-	if module := out.Run.Go.Module; module != "" {
+	if source := out.Run.Binary.Source; source != "" {
+		parsedURL, err := NewMetadata(source, e.Ref).Generate()
+		if err != nil {
+			return err
+		}
+
+		binpath, err := downloadFile(parsedURL)
+		if err != nil {
+			return err
+		}
+
+		var cmds []*exec.Cmd
+		if runtime.GOOS != "windows" {
+			cmds = append(cmds, exec.Command("chmod", "+x", binpath))
+		}
+		cmds = append(cmds, exec.Command(binpath))
+		err = runCmds(ctx, cmds, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+		if err != nil {
+			return err
+		}
+	} else if module := out.Run.Go.Module; module != "" {
 		// if the plugin is a Go module
 
 		slog.Debug("go build", slog.String("module", module))
@@ -88,17 +114,6 @@ func (e *Execer) Exec(ctx context.Context) error {
 		}
 
 		slog.Debug("go run", slog.String("module", module))
-
-		// execute the binary
-		cmd = exec.Command(binpath)
-		cmd.Env = e.Environ
-		cmd.Dir = e.Workdir
-		cmd.Stderr = e.Stderr
-		cmd.Stdout = e.Stdout
-		if err := cmd.Run(); err != nil {
-			return err
-		}
-
 	} else {
 		// else if the plugin is a Bash script
 
@@ -136,4 +151,47 @@ func (e *Execer) Exec(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func downloadFile(url string) (string, error) {
+	f, err := os.CreateTemp("", "")
+	if err != nil {
+		return "", errors.Wrap(err, "failed to create temporary file")
+	}
+	defer f.Close()
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("failed to download url: %s", url))
+	}
+	defer resp.Body.Close()
+
+	if _, err = io.Copy(f, resp.Body); err != nil {
+		return "", errors.Wrap(err, "failed to write download binary to file")
+	}
+
+	return f.Name(), nil
+}
+
+func runCmds(ctx context.Context, cmds []*exec.Cmd, env []string, workdir string,
+	stdout io.Writer, stderr io.Writer) error {
+	for _, cmd := range cmds {
+		cmd.Stdout = stdout
+		cmd.Stderr = stderr
+		cmd.Env = env
+		cmd.Dir = workdir
+		trace(ctx, cmd)
+
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// trace writes each command to stdout with the command wrapped in an xml
+// tag so that it can be extracted and displayed in the logs.
+func trace(ctx context.Context, cmd *exec.Cmd) {
+	s := fmt.Sprintf("+ %s\n", strings.Join(cmd.Args, " "))
+	slog.FromContext(ctx).Debug(s)
 }
