@@ -34,7 +34,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	// install linux dependencies
 	if runtime.GOOS == "linux" {
 		if len(out.Deps.Apt) > 0 {
-			slog.FromContext(ctx).
+			slog.
 				Debug("apt-get update")
 
 			cmd := exec.Command("sudo", "apt-get", "update")
@@ -46,7 +46,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 		}
 
 		for _, item := range out.Deps.Apt {
-			slog.FromContext(ctx).
+			slog.
 				Debug("apt-get install", slog.String("package", item))
 
 			cmd := exec.Command("sudo", "apt-get", "install", item)
@@ -60,7 +60,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	// install darwin dependencies
 	if runtime.GOOS == "darwin" {
 		for _, item := range out.Deps.Brew {
-			slog.FromContext(ctx).
+			slog.
 				Debug("brew install", slog.String("package", item))
 
 			cmd := exec.Command("brew", "install", item)
@@ -77,7 +77,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	if module := out.Run.Go.Module; module != "" {
 		// if the plugin is a Go module
 
-		slog.FromContext(ctx).
+		slog.
 			Debug("go build", slog.String("module", module))
 
 		// compile the code
@@ -91,7 +91,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 			return err
 		}
 
-		slog.FromContext(ctx).
+		slog.
 			Debug("go run", slog.String("module", module))
 
 		// execute the binary
@@ -112,7 +112,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 		shell := "/bin/bash"
 		path := filepath.Join(e.Source, script)
 
-		slog.FromContext(ctx).
+		slog.
 			Debug("execute", slog.String("file", script))
 
 		// if the bash shell does not exist fallback

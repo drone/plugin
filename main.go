@@ -29,7 +29,7 @@ var (
 func main() {
 	log := slog.Default()
 	ctx := context.Background()
-	ctx = slog.NewContext(ctx, log)
+	// ctx = slog.NewContext(ctx, log)
 
 	// parse the input parameters
 	flag.StringVar(&name, "name", "", "plugin name")
