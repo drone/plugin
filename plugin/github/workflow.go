@@ -113,7 +113,7 @@ func prePostStep(name, envFile string) step {
 }
 
 func getOutputVariables(prevStepId, outputfile string, output_vars []string) step {
-	skip := len(output_vars) == 0
+	skip := len(outputfile) == 0 || len(output_vars) == 0
 	cmd := ""
 	for _, output_var := range output_vars {
 		cmd += fmt.Sprintf("print(\"%s\"+\"=\"+\"${{ steps.%s.outputs.%s }}\"); ", output_var, prevStepId, output_var)
