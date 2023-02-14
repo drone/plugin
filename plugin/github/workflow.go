@@ -27,12 +27,14 @@ type job struct {
 }
 
 type step struct {
+	Id    string            `yaml:"id,omitempty"`
 	Uses  string            `yaml:"uses,omitempty"`
 	Name  string            `yaml:"name,omitempty"`
 	With  map[string]string `yaml:"with,omitempty"`
 	Env   map[string]string `yaml:"env,omitempty"`
 	Run   string            `yaml:"run,omitempty"`
 	Shell string            `yaml:"shell,omitempty"`
+	If    string            `yaml:"if,omitempty"`
 }
 
 const (
@@ -40,10 +42,11 @@ const (
 	workflowName  = "drone-github-action"
 	jobName       = "action"
 	runsOnImage   = "-self-hosted"
+	stepId        = "stepId"
 )
 
 func createWorkflowFile(action string, envVars map[string]string,
-	ymlFile, beforeStepEnvFile, afterStepEnvFile string) error {
+	ymlFile, beforeStepEnvFile, afterStepEnvFile string, outputfile string, output_vars []string) error {
 	with, err := getWith(envVars)
 	if err != nil {
 		return err
@@ -55,10 +58,12 @@ func createWorkflowFile(action string, envVars map[string]string,
 		Steps: []step{
 			prePostStep("before", beforeStepEnvFile),
 			{
+				Id:   stepId,
 				Uses: action,
 				With: with,
 				Env:  env,
 			},
+			getOutputVariables(stepId, outputfile, output_vars),
 			prePostStep("after", afterStepEnvFile),
 		},
 	}
@@ -100,6 +105,25 @@ func prePostStep(name, envFile string) step {
 	s := step{
 		Name: name,
 		Run:  cmd,
+	}
+	if runtime.GOOS == "windows" {
+		s.Shell = "powershell"
+	}
+	return s
+}
+
+func getOutputVariables(prevStepId, outputfile string, output_vars []string) step {
+	skip := len(output_vars) == 0
+	cmd := ""
+	for _, output_var := range output_vars {
+		cmd += fmt.Sprintf("print(\"%s\"+\"=\"+\"${{ steps.%s.outputs.%s }}\"); ", output_var, prevStepId, output_var)
+	}
+
+	cmd = fmt.Sprintf("python -c '%s' > %s", cmd, outputfile)
+	s := step{
+		Name: "output variables",
+		Run:  cmd,
+		If:   fmt.Sprintf("%t", !skip),
 	}
 	if runtime.GOOS == "windows" {
 		s.Shell = "powershell"

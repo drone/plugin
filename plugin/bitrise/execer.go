@@ -16,11 +16,12 @@ import (
 
 // Execer executes a bitrise plugin.
 type Execer struct {
-	Source  string // plugin source code directory
-	Workdir string // pipeline working directory (aka workspace)
-	Environ []string
-	Stdout  io.Writer
-	Stderr  io.Writer
+	Source     string // plugin source code directory
+	Workdir    string // pipeline working directory (aka workspace)
+	Environ    []string
+	Stdout     io.Writer
+	Stderr     io.Writer
+	Outputfile string
 }
 
 // Exec executes a bitrise plugin.
@@ -69,6 +70,17 @@ func (e *Execer) Exec(ctx context.Context) error {
 			cmd.Stderr = e.Stderr
 			cmd.Stdout = e.Stdout
 			cmd.Run()
+		}
+	}
+
+	// create the .envstore.yml file if not present
+	if !Is(e.Source, envStoreFile) {
+		slog.FromContext(ctx).
+			Debug("envman init")
+		cmd := exec.Command("envman", "init")
+		cmd.Dir = e.Source
+		if err := cmd.Run(); err != nil {
+			slog.FromContext(ctx).Warn("Unable to create envstore file", err)
 		}
 	}
 
@@ -133,6 +145,17 @@ func (e *Execer) Exec(ctx context.Context) error {
 		cmd.Stdout = e.Stdout
 		if err := cmd.Run(); err != nil {
 			return err
+		}
+	}
+
+	// save to outputfile if present
+	if len(e.Outputfile) > 0 {
+		if m, err := readEnvStore(e.Source); err == nil && len(m.Envs) > 0 {
+			if err = saveOutputFromEnvStore(m.Envs, e.Outputfile); err != nil {
+				slog.FromContext(ctx).Error("Unable to save output", err)
+			}
+		} else if err != nil {
+			slog.FromContext(ctx).Error("Unable to load envstore file", err)
 		}
 	}
 
