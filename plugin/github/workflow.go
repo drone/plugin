@@ -119,7 +119,11 @@ func getOutputVariables(prevStepId, outputfile string, output_vars []string) ste
 		cmd += fmt.Sprintf("print(\"%s\"+\"=\"+\"${{ steps.%s.outputs.%s }}\"); ", output_var, prevStepId, output_var)
 	}
 
-	cmd = fmt.Sprintf("python -c '%s' > %s", cmd, outputfile)
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		cmd = fmt.Sprintf("python3 -c '%s' > %s", cmd, outputfile)
+	} else {
+		cmd = fmt.Sprintf("python -c '%s' > %s", cmd, outputfile)
+	}
 	s := step{
 		Name: "output variables",
 		Run:  cmd,
