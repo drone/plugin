@@ -74,7 +74,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	}
 
 	// create the .envstore.yml file if not present
-	if !Is(e.Source, envStoreFile) {
+	if !exists(e.Source, envStoreFile) {
 		slog.FromContext(ctx).
 			Debug("envman init")
 		cmd := exec.Command("envman", "init")

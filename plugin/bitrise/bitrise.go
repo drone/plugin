@@ -19,21 +19,29 @@ const (
 
 // Is returns true if the root path is a Bitrise
 // plugin repository.
-func Is(root, filename string) bool {
-	path := filepath.Join(root, filename)
+func Is(root string) bool {
+	path := filepath.Join(root, "step.yml")
 	if _, err := os.Stat(path); err == nil {
 		return true
 	}
 	return false
 }
 
-func readEnvStore(root string) (*EnvsSerializeModel, error) {
+func exists(base, file string) bool {
+	path := filepath.Join(base, file)
+	if _, err := os.Stat(path); err == nil {
+		return true
+	}
+	return false
+}
+
+func readEnvStore(root string) (*envStore, error) {
 	buf, err := ioutil.ReadFile(filepath.Join(root, envStoreFile))
 	if err != nil {
 		return nil, err
 	}
 
-	m := &EnvsSerializeModel{}
+	m := &envStore{}
 	err = yaml.Unmarshal(buf, m)
 	if err != nil {
 		return nil, err
@@ -42,7 +50,7 @@ func readEnvStore(root string) (*EnvsSerializeModel, error) {
 	return m, err
 }
 
-func saveOutputFromEnvStore(envs []EnvironmentItemModel, outputfile string) error {
+func saveOutputFromEnvStore(envs []map[string]string, outputfile string) error {
 	finalMap := make(map[string]string)
 	for _, env := range envs {
 		for k, v := range env {

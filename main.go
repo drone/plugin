@@ -121,7 +121,7 @@ func main() {
 		}
 
 	// execute bitrise plugin
-	case bitrise.Is(codedir, "step.yml") || kind == "bitrise":
+	case bitrise.Is(codedir) || kind == "bitrise":
 		log.Info("detected bitrise step.yml")
 		execer := bitrise.Execer{
 			Source:  codedir,

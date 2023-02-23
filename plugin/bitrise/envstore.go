@@ -1,8 +1,6 @@
 package bitrise
 
-type EnvironmentItemModel map[string]string
-
-// EnvsSerializeModel ...
-type EnvsSerializeModel struct {
-	Envs []EnvironmentItemModel `json:"envs" yaml:"envs"`
+// envStore ...
+type envStore struct {
+	Envs []map[string]string `json:"envs" yaml:"envs"`
 }
