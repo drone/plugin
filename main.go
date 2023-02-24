@@ -19,11 +19,12 @@ import (
 )
 
 var (
-	name string // plugin name
-	repo string // plugin repository
-	ref  string // plugin repository reference
-	sha  string // plugin repository commit
-	kind string // plugin kind (action, bitrise, harness)
+	name       string // plugin name
+	repo       string // plugin repository
+	ref        string // plugin repository reference
+	sha        string // plugin repository commit
+	kind       string // plugin kind (action, bitrise, harness)
+	outputfile string // plugin outputfile
 )
 
 func main() {
@@ -37,26 +38,24 @@ func main() {
 	flag.StringVar(&ref, "ref", "", "plugin reference")
 	flag.StringVar(&sha, "sha", "", "plugin commit")
 	flag.StringVar(&kind, "kind", "", "plugin kind")
+	flag.StringVar(&outputfile, "outputfile", "", "filepath to store output variables")
 	flag.Parse()
 
-	if kind == "action" {
-		execer := github.Execer{
-			Name:    name,
-			Stdout:  os.Stdout,
-			Stderr:  os.Stderr,
-			Environ: os.Environ(),
+	// the user may specific the action plugin alias instead
+	// of the git repository. We are able to lookup the plugin
+	// by alias to find the corresponding repository and ref.
+	if repo == "" && kind == "action" {
+		repo_, ref_, ok := github.ParseLookup(name)
+		if ok {
+			repo = repo_
+			ref = ref_
 		}
-		if err := execer.Exec(ctx); err != nil {
-			log.Error("action step failed", err)
-			os.Exit(1)
-		}
-		return
 	}
 
 	// the user may specific the harness plugin alias instead
 	// of the git repository. We are able to lookup the plugin
 	// by alias to find the corresponding repository and commit.
-	if repo == "" && kind != "bitrise" {
+	if repo == "" && kind == "harness" {
 		repo_, sha_, ok := harness.ParseLookup(name)
 		if ok {
 			repo = repo_
@@ -67,7 +66,7 @@ func main() {
 	// the user may specific the bitrise plugin alias instead
 	// of the git repository. We are able to lookup the plugin
 	// by alias to find the corresponding repository and commit.
-	if repo == "" && kind != "harness" {
+	if repo == "" && kind == "bitrise" {
 		repo_, sha_, ok := bitrise.ParseLookup(name)
 		if ok {
 			repo = repo_
@@ -132,9 +131,25 @@ func main() {
 			Environ: bitrise.Environ(
 				os.Environ(),
 			),
+			Outputfile: outputfile,
 		}
 		if err := execer.Exec(ctx); err != nil {
 			log.Error("step failed", err)
+			os.Exit(1)
+		}
+
+	case github.Is(codedir) || kind == "action":
+		log.Info("detected github action action.yml")
+		execer := github.Execer{
+			Name:       name,
+			TmpDir:     codedir,
+			Stdout:     os.Stdout,
+			Stderr:     os.Stderr,
+			Environ:    os.Environ(),
+			Outputfile: outputfile,
+		}
+		if err := execer.Exec(ctx); err != nil {
+			log.Error("action step failed", err)
 			os.Exit(1)
 		}
 	default:
