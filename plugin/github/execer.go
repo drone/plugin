@@ -22,7 +22,7 @@ type Execer struct {
 	Name       string
 	Environ    []string
 	TmpDir     string
-	Outputfile string
+	OutputFile string
 	Stdout     io.Writer
 	Stderr     io.Writer
 }
@@ -41,7 +41,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	workflowFile := filepath.Join(e.TmpDir, "workflow.yml")
 	beforeStepEnvFile := filepath.Join(e.TmpDir, "before.env")
 	afterStepEnvFile := filepath.Join(e.TmpDir, "after.env")
-	if err := createWorkflowFile(e.Name, envVars, workflowFile, beforeStepEnvFile, afterStepEnvFile, e.Outputfile, outputVars); err != nil {
+	if err := createWorkflowFile(e.Name, envVars, workflowFile, beforeStepEnvFile, afterStepEnvFile, e.OutputFile, outputVars); err != nil {
 		return err
 	}
 

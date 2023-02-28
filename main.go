@@ -24,7 +24,7 @@ var (
 	ref        string // plugin repository reference
 	sha        string // plugin repository commit
 	kind       string // plugin kind (action, bitrise, harness)
-	outputfile string // plugin outputfile
+	outputFile string // plugin outputfile
 )
 
 func main() {
@@ -38,7 +38,6 @@ func main() {
 	flag.StringVar(&ref, "ref", "", "plugin reference")
 	flag.StringVar(&sha, "sha", "", "plugin commit")
 	flag.StringVar(&kind, "kind", "", "plugin kind")
-	flag.StringVar(&outputfile, "outputfile", "", "filepath to store output variables")
 	flag.Parse()
 
 	// the user may specific the action plugin alias instead
@@ -104,6 +103,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	outputFile = os.Getenv("DRONE_OUTPUT")
+	outputFile = "/Users/raghav/output-plugin.env"
+
 	switch {
 	// execute harness plugin
 	case harness.Is(codedir) || kind == "harness":
@@ -131,7 +133,7 @@ func main() {
 			Environ: bitrise.Environ(
 				os.Environ(),
 			),
-			Outputfile: outputfile,
+			OutputFile: outputFile,
 		}
 		if err := execer.Exec(ctx); err != nil {
 			log.Error("step failed", err)
@@ -146,7 +148,7 @@ func main() {
 			Stdout:     os.Stdout,
 			Stderr:     os.Stderr,
 			Environ:    os.Environ(),
-			Outputfile: outputfile,
+			OutputFile: outputFile,
 		}
 		if err := execer.Exec(ctx); err != nil {
 			log.Error("action step failed", err)

@@ -21,7 +21,7 @@ type Execer struct {
 	Environ    []string
 	Stdout     io.Writer
 	Stderr     io.Writer
-	Outputfile string
+	OutputFile string
 }
 
 // Exec executes a bitrise plugin.
@@ -149,9 +149,9 @@ func (e *Execer) Exec(ctx context.Context) error {
 	}
 
 	// save to outputfile if present
-	if len(e.Outputfile) > 0 {
+	if len(e.OutputFile) > 0 {
 		if m, err := readEnvStore(e.Source); err == nil && len(m.Envs) > 0 {
-			if err = saveOutputFromEnvStore(m.Envs, e.Outputfile); err != nil {
+			if err = saveOutputFromEnvStore(m.Envs, e.OutputFile); err != nil {
 				slog.FromContext(ctx).Error("Unable to save output", err)
 			}
 		} else if err != nil {
