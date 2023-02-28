@@ -46,7 +46,7 @@ const (
 )
 
 func createWorkflowFile(action string, envVars map[string]string,
-	ymlFile, beforeStepEnvFile, afterStepEnvFile string, outputfile string, output_vars []string) error {
+	ymlFile, beforeStepEnvFile, afterStepEnvFile string, outputFile string, outputVars []string) error {
 	with, err := getWith(envVars)
 	if err != nil {
 		return err
@@ -63,7 +63,7 @@ func createWorkflowFile(action string, envVars map[string]string,
 				With: with,
 				Env:  env,
 			},
-			getOutputVariables(stepId, outputfile, output_vars),
+			getOutputVariables(stepId, outputFile, outputVars),
 			prePostStep("after", afterStepEnvFile),
 		},
 	}
@@ -112,17 +112,17 @@ func prePostStep(name, envFile string) step {
 	return s
 }
 
-func getOutputVariables(prevStepId, outputfile string, output_vars []string) step {
-	skip := len(outputfile) == 0 || len(output_vars) == 0
+func getOutputVariables(prevStepId, outputFile string, outputVars []string) step {
+	skip := len(outputFile) == 0 || len(outputVars) == 0
 	cmd := ""
-	for _, output_var := range output_vars {
-		cmd += fmt.Sprintf("print(\"%s\"+\"=\"+\"${{ steps.%s.outputs.%s }}\"); ", output_var, prevStepId, output_var)
+	for _, outputVar := range outputVars {
+		cmd += fmt.Sprintf("print(\"%s\"+\"=\"+\"${{ steps.%s.outputs.%s }}\"); ", outputVar, prevStepId, outputVar)
 	}
 
 	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
-		cmd = fmt.Sprintf("python3 -c '%s' > %s", cmd, outputfile)
+		cmd = fmt.Sprintf("python3 -c '%s' > %s", cmd, outputFile)
 	} else {
-		cmd = fmt.Sprintf("python -c '%s' > %s", cmd, outputfile)
+		cmd = fmt.Sprintf("python -c '%s' > %s", cmd, outputFile)
 	}
 	s := step{
 		Name: "output variables",
