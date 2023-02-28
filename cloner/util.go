@@ -14,7 +14,7 @@ import (
 var (
 	sha1   = regexp.MustCompile("^([a-f0-9]{40})$")
 	sha256 = regexp.MustCompile("^([a-f0-9]{64})$")
-	semver = regexp.MustCompile(`^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
+	semver = regexp.MustCompile(`^v?((([0-9]+)(?:\.([0-9]+))?(?:\.([0-9]+))?(?:-([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)$`)
 )
 
 // helper function returns true if the string is a commit hash.
