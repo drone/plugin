@@ -104,7 +104,6 @@ func main() {
 	}
 
 	outputFile = os.Getenv("DRONE_OUTPUT")
-	outputFile = "/Users/raghav/output-plugin.env"
 
 	switch {
 	// execute harness plugin
