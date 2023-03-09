@@ -6,7 +6,6 @@ package github
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -21,7 +20,7 @@ import (
 type Execer struct {
 	Name       string
 	Environ    []string
-	TmpDir     string
+	Source     string
 	OutputFile string
 	Stdout     io.Writer
 	Stderr     io.Writer
@@ -29,18 +28,17 @@ type Execer struct {
 
 // Exec executes a github action.
 func (e *Execer) Exec(ctx context.Context) error {
-	envVars := environ.Map(e.Environ)
-	outputVars := make([]string, 0)
-	// parse the github plugin yaml
-	if out, _ := parseFile(getYamlFilename(e.TmpDir)); out != nil && len(out.Outputs) > 0 {
-		for k := range out.Outputs {
-			outputVars = append(outputVars, k)
-		}
+	tmpDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return err
 	}
 
-	workflowFile := filepath.Join(e.TmpDir, "workflow.yml")
-	beforeStepEnvFile := filepath.Join(e.TmpDir, "before.env")
-	afterStepEnvFile := filepath.Join(e.TmpDir, "after.env")
+	envVars := environ.Map(e.Environ)
+	outputVars := getOutputVars(e.Source, e.Name)
+
+	workflowFile := filepath.Join(tmpDir, "workflow.yml")
+	beforeStepEnvFile := filepath.Join(tmpDir, "before.env")
+	afterStepEnvFile := filepath.Join(tmpDir, "after.env")
 	if err := createWorkflowFile(e.Name, envVars, workflowFile, beforeStepEnvFile, afterStepEnvFile, e.OutputFile, outputVars); err != nil {
 		return err
 	}
@@ -53,13 +51,17 @@ func (e *Execer) Exec(ctx context.Context) error {
 		"-W",
 		workflowFile,
 		"-P",
-		fmt.Sprintf("-self-hosted=-self-hosted"),
+		"-self-hosted=-self-hosted",
 		"-b",
 		"--detect-event",
 	}
 
+	if sFile, err := getSecretFile(envVars, tmpDir); err == nil && sFile != "" {
+		os.Args = append(os.Args, "--secret-file", sFile)
+	}
+
 	if eventPayload, ok := envVars["PLUGIN_EVENT_PAYLOAD"]; ok {
-		eventPayloadFile := filepath.Join(e.TmpDir, "event.yml")
+		eventPayloadFile := filepath.Join(tmpDir, "event.yml")
 
 		if err := ioutil.WriteFile(eventPayloadFile, []byte(eventPayload), 0644); err != nil {
 			return errors.Wrap(err, "failed to write event payload to file")

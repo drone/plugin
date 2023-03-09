@@ -7,15 +7,14 @@ package main
 import (
 	"context"
 	"flag"
-	"io/ioutil"
 	"os"
+
+	"golang.org/x/exp/slog"
 
 	"github.com/drone/plugin/cloner"
 	"github.com/drone/plugin/plugin/bitrise"
 	"github.com/drone/plugin/plugin/github"
 	"github.com/drone/plugin/plugin/harness"
-
-	"golang.org/x/exp/slog"
 )
 
 var (
@@ -28,9 +27,7 @@ var (
 )
 
 func main() {
-	log := slog.Default()
 	ctx := context.Background()
-	ctx = slog.NewContext(ctx, log)
 
 	// parse the input parameters
 	flag.StringVar(&name, "name", "", "plugin name")
@@ -76,14 +73,14 @@ func main() {
 	// current working directory (workspace)
 	workdir, err := os.Getwd()
 	if err != nil {
-		log.Error("cannot get workdir", err)
+		slog.Error("cannot get workdir", err)
 		os.Exit(1)
 	}
 
 	// directory to clone the plugin
-	codedir, err := ioutil.TempDir("", "")
+	codedir, err := os.MkdirTemp("", "")
 	if err != nil {
-		log.Error("cannot create clone dir", err)
+		slog.Error("cannot create clone dir", err)
 		os.Exit(1)
 	}
 	// remove the temporary clone directory
@@ -99,7 +96,7 @@ func main() {
 		Dir:  codedir,
 	})
 	if err != nil {
-		log.Error("cannot clone the plugin", err)
+		slog.Error("cannot clone the plugin", err)
 		os.Exit(1)
 	}
 
@@ -108,7 +105,7 @@ func main() {
 	switch {
 	// execute harness plugin
 	case harness.Is(codedir) || kind == "harness":
-		log.Info("detected harness plugin.yml")
+		slog.Info("detected harness plugin.yml")
 		execer := harness.Execer{
 			Source:  codedir,
 			Workdir: workdir,
@@ -117,13 +114,13 @@ func main() {
 			Stderr:  os.Stderr,
 		}
 		if err := execer.Exec(ctx); err != nil {
-			log.Error("step failed", err)
+			slog.Error("step failed", err)
 			os.Exit(1)
 		}
 
 	// execute bitrise plugin
 	case bitrise.Is(codedir) || kind == "bitrise":
-		log.Info("detected bitrise step.yml")
+		slog.Info("detected bitrise step.yml")
 		execer := bitrise.Execer{
 			Source:  codedir,
 			Workdir: workdir,
@@ -135,26 +132,26 @@ func main() {
 			OutputFile: outputFile,
 		}
 		if err := execer.Exec(ctx); err != nil {
-			log.Error("step failed", err)
+			slog.Error("step failed", err)
 			os.Exit(1)
 		}
 
 	case github.Is(codedir) || kind == "action":
-		log.Info("detected github action action.yml")
+		slog.Info("detected github action action.yml")
 		execer := github.Execer{
 			Name:       name,
-			TmpDir:     codedir,
+			Source:     codedir,
 			Stdout:     os.Stdout,
 			Stderr:     os.Stderr,
 			Environ:    os.Environ(),
 			OutputFile: outputFile,
 		}
 		if err := execer.Exec(ctx); err != nil {
-			log.Error("action step failed", err)
+			slog.Error("action step failed", err)
 			os.Exit(1)
 		}
 	default:
-		log.Info("unknown plugin type")
+		slog.Info("unknown plugin type")
 		os.Exit(1)
 	}
 }

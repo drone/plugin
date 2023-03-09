@@ -11,14 +11,21 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 )
 
 // New returns a new cloner.
 func New(depth int, stdout io.Writer) Cloner {
-	return &cloner{
+	c := &cloner{
 		depth:  depth,
 		stdout: stdout,
 	}
+
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		c.username = "token"
+		c.password = token
+	}
+	return c
 }
 
 // NewDefault returns a cloner with default settings.
@@ -28,8 +35,10 @@ func NewDefault() Cloner {
 
 // default cloner using the built-in Git client.
 type cloner struct {
-	depth  int
-	stdout io.Writer
+	depth    int
+	username string
+	password string
+	stdout   io.Writer
 }
 
 // Clone the repository using the built-in Git client.
@@ -38,6 +47,7 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 		RemoteName: "origin",
 		Progress:   c.stdout,
 		URL:        params.Repo,
+		Tags:       git.NoTags,
 	}
 	// set the reference name if provided
 	if params.Ref != "" {
@@ -48,7 +58,12 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 	if params.Sha == "" {
 		opts.Depth = c.depth
 	}
-
+	if c.username != "" && c.password != "" {
+		opts.Auth = &http.BasicAuth{
+			Username: c.username,
+			Password: c.password,
+		}
+	}
 	// clone the repository
 	r, err := git.PlainClone(params.Dir, false, opts)
 	if err != nil {
