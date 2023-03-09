@@ -35,8 +35,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	// install linux dependencies
 	if runtime.GOOS == "linux" {
 		if len(out.Deps.Aptget) > 0 {
-			slog.FromContext(ctx).
-				Debug("apt-get update")
+			slog.Debug("apt-get update")
 
 			cmd := exec.Command("sudo", "apt-get", "update")
 			cmd.Env = e.Environ
@@ -47,8 +46,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 		}
 
 		for _, item := range out.Deps.Aptget {
-			slog.FromContext(ctx).
-				Debug("apt-get install", slog.String("package", item.Name))
+			slog.Debug("apt-get install", slog.String("package", item.Name))
 
 			cmd := exec.Command("sudo", "apt-get", "install", item.Name)
 			cmd.Env = e.Environ
@@ -61,8 +59,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	// install darwin dependencies
 	if runtime.GOOS == "darwin" {
 		for _, item := range out.Deps.Brew {
-			slog.FromContext(ctx).
-				Debug("brew install", slog.String("package", item.Name))
+			slog.Debug("brew install", slog.String("package", item.Name))
 
 			cmd := exec.Command("brew", "install", item.Name)
 			cmd.Env = e.Environ
@@ -75,12 +72,11 @@ func (e *Execer) Exec(ctx context.Context) error {
 
 	// create the .envstore.yml file if not present
 	if !exists(e.Source, envStoreFile) {
-		slog.FromContext(ctx).
-			Debug("envman init")
+		slog.Debug("envman init")
 		cmd := exec.Command("envman", "init")
 		cmd.Dir = e.Source
 		if err := cmd.Run(); err != nil {
-			slog.FromContext(ctx).Warn("Unable to create envstore file", err)
+			slog.Warn("Unable to create envstore file", err)
 		}
 	}
 
@@ -93,8 +89,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	if module != "" {
 		// if the plugin is a Go module
 
-		slog.FromContext(ctx).
-			Debug("go build", slog.String("module", module))
+		slog.Debug("go build", slog.String("module", module))
 
 		// compile the code
 		binpath := filepath.Join(e.Source, "step.exe")
@@ -107,8 +102,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 			return err
 		}
 
-		slog.FromContext(ctx).
-			Debug("go run", slog.String("module", module))
+		slog.Debug("go run", slog.String("module", module))
 
 		// execute the binary
 		cmd = exec.Command(binpath)
@@ -127,8 +121,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 		script := out.Toolkit.Bash.Entryfile
 		path := filepath.Join(e.Source, script)
 
-		slog.FromContext(ctx).
-			Debug("execute", slog.String("file", script))
+		slog.Debug("execute", slog.String("file", script))
 
 		// if the bash shell does not exist fallback
 		// to posix shell.
@@ -152,10 +145,10 @@ func (e *Execer) Exec(ctx context.Context) error {
 	if len(e.OutputFile) > 0 {
 		if m, err := readEnvStore(e.Source); err == nil && len(m.Envs) > 0 {
 			if err = saveOutputFromEnvStore(m.Envs, e.OutputFile); err != nil {
-				slog.FromContext(ctx).Error("Unable to save output", err)
+				slog.Error("Unable to save output", err)
 			}
 		} else if err != nil {
-			slog.FromContext(ctx).Error("Unable to load envstore file", err)
+			slog.Error("Unable to load envstore file", err)
 		}
 	}
 
