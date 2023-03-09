@@ -47,6 +47,7 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 		RemoteName: "origin",
 		Progress:   c.stdout,
 		URL:        params.Repo,
+		Tags:       git.NoTags,
 	}
 	// set the reference name if provided
 	if params.Ref != "" {
@@ -63,7 +64,6 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 			Password: c.password,
 		}
 	}
-
 	// clone the repository
 	r, err := git.PlainClone(params.Dir, false, opts)
 	if err != nil {
