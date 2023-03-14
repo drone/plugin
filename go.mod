@@ -2,7 +2,7 @@ module github.com/drone/plugin
 
 go 1.19
 
-replace github.com/nektos/act => github.com/harness/nektos-act v0.0.0-20230313083509-8da49f0747a0
+replace github.com/nektos/act => github.com/harness/nektos-act v0.0.0-20230314090425-5caf6f83c677
 
 require (
 	github.com/buildkite/yaml v2.1.0+incompatible
