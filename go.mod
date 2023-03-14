@@ -2,6 +2,8 @@ module github.com/drone/plugin
 
 go 1.19
 
+replace github.com/nektos/act => github.com/harness/nektos-act v0.0.0-20230313083509-8da49f0747a0
+
 require (
 	github.com/buildkite/yaml v2.1.0+incompatible
 	github.com/ghodss/yaml v1.0.0
@@ -22,6 +24,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect
+	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/andreaskoch/go-fswatch v1.0.0 // indirect
 	github.com/cloudflare/circl v1.3.2 // indirect
 	github.com/containerd/containerd v1.6.19 // indirect
