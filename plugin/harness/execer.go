@@ -8,14 +8,12 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/http"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 
-	"github.com/pkg/errors"
+	"github.com/drone/plugin/plugin/internal/file"
 	"golang.org/x/exp/slog"
 )
 
@@ -82,8 +80,8 @@ func (e *Execer) Exec(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		binpath, err := downloadFile(parsedURL)
-		if err != nil {
+		binpath := filepath.Join(e.Source, "step.exe")
+		if err := file.Download(parsedURL, binpath); err != nil {
 			return err
 		}
 
@@ -150,26 +148,6 @@ func (e *Execer) Exec(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func downloadFile(url string) (string, error) {
-	f, err := os.CreateTemp("", "")
-	if err != nil {
-		return "", errors.Wrap(err, "failed to create temporary file")
-	}
-	defer f.Close()
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("failed to download url: %s", url))
-	}
-	defer resp.Body.Close()
-
-	if _, err = io.Copy(f, resp.Body); err != nil {
-		return "", errors.Wrap(err, "failed to write download binary to file")
-	}
-
-	return f.Name(), nil
 }
 
 func runCmds(ctx context.Context, cmds []*exec.Cmd, env []string, workdir string,
