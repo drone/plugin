@@ -192,5 +192,5 @@ func runCmds(ctx context.Context, cmds []*exec.Cmd, env []string, workdir string
 // tag so that it can be extracted and displayed in the logs.
 func trace(ctx context.Context, cmd *exec.Cmd) {
 	s := fmt.Sprintf("+ %s\n", strings.Join(cmd.Args, " "))
-	slog.FromContext(ctx).Debug(s)
+	slog.Debug(s)
 }
