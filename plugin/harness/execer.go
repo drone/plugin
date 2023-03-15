@@ -21,7 +21,7 @@ import (
 
 // Execer executes a harness plugin.
 type Execer struct {
-	Ref     string
+	Ref     string // Git ref for source code
 	Source  string // plugin source code directory
 	Workdir string // pipeline working directory (aka workspace)
 	Environ []string
