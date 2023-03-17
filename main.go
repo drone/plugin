@@ -109,6 +109,7 @@ func main() {
 		execer := harness.Execer{
 			Source:  codedir,
 			Workdir: workdir,
+			Ref:     ref,
 			Environ: os.Environ(),
 			Stdout:  os.Stdout,
 			Stderr:  os.Stderr,

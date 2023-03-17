@@ -25,5 +25,8 @@ type spec struct {
 		Go struct {
 			Module string
 		}
+		Binary struct {
+			Source string
+		}
 	}
 }

@@ -10,9 +10,10 @@ require (
 	github.com/go-git/go-git/v5 v5.6.0
 	github.com/google/go-cmp v0.5.9
 	github.com/joho/godotenv v1.5.1
+	github.com/klauspost/compress v1.16.3
 	github.com/nektos/act v0.2.43
 	github.com/pkg/errors v0.9.1
-	golang.org/x/exp v0.0.0-20230307190834-24139beb5833
+	golang.org/x/exp v0.0.0-20230314191032-db074128a8ec
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -27,7 +28,7 @@ require (
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/andreaskoch/go-fswatch v1.0.0 // indirect
 	github.com/cloudflare/circl v1.3.2 // indirect
-	github.com/containerd/containerd v1.6.19 // indirect
+	github.com/containerd/containerd v1.7.0 // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/docker/cli v23.0.1+incompatible // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
@@ -36,7 +37,7 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/fatih/color v1.14.1 // indirect
+	github.com/fatih/color v1.15.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -47,7 +48,6 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-	github.com/klauspost/compress v1.16.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
@@ -58,7 +58,7 @@ require (
 	github.com/moby/patternmatcher v0.5.0 // indirect
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
+	github.com/opencontainers/image-spec v1.1.0-rc2.0.20221005185240-3a7f492d3f1b // indirect
 	github.com/opencontainers/runc v1.1.4 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
