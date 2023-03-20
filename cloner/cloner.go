@@ -15,7 +15,7 @@ type (
 		Repo string
 		Ref  string
 		Sha  string
-		Dir  string
+		Dir  string // Target clone directory.
 	}
 
 	// Cloner clones a repository.
