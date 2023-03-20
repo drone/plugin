@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/drone/plugin/cache"
 	"github.com/drone/plugin/plugin/internal/file"
 	"golang.org/x/exp/slog"
 )
@@ -107,17 +108,18 @@ func (e *Execer) Exec(ctx context.Context) error {
 			slog.Info("Dry run flag is set. Not executing the plugin")
 			return nil
 		}
-		slog.Debug("go build", slog.String("module", module))
-
-		// compile the code
-		binpath := filepath.Join(e.Source, "step.exe")
-		cmd := exec.Command("go", "build", "-o", binpath, module)
-		err = runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Source, e.Stdout, e.Stderr)
+		binpath, err := e.buildGoExecutable(ctx, module)
 		if err != nil {
 			return err
 		}
 
 		slog.Debug("go run", slog.String("module", module))
+		// execute the binary
+		cmd := exec.Command(binpath)
+		err = runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+		if err != nil {
+			return err
+		}
 	} else {
 		if e.DryRun {
 			slog.Info("Dry run flag is set. Not executing the plugin")
@@ -157,6 +159,25 @@ func (e *Execer) Exec(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (e *Execer) buildGoExecutable(ctx context.Context, module string) (
+	string, error) {
+	key := e.Source
+	binpath := filepath.Join(e.Source, "step.exe")
+
+	buildFn := func() error {
+		slog.Debug("go build", slog.String("module", module))
+
+		// compile the code
+		cmd := exec.Command("go", "build", "-o", binpath, module)
+		return runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Source, e.Stdout, e.Stderr)
+	}
+
+	if err := cache.Add(key, buildFn); err != nil {
+		return "", err
+	}
+	return binpath, nil
 }
 
 func runCmds(ctx context.Context, cmds []*exec.Cmd, env []string, workdir string,
