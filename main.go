@@ -29,6 +29,13 @@ var (
 func main() {
 	ctx := context.Background()
 
+	level := slog.LevelInfo
+	if os.Getenv("DRONE_DEBUG") == "true" {
+		level = slog.LevelDebug
+	}
+	logger := slog.New(slog.HandlerOptions{Level: level}.NewTextHandler(os.Stdout))
+	slog.SetDefault(logger)
+
 	// parse the input parameters
 	flag.StringVar(&name, "name", "", "plugin name")
 	flag.StringVar(&repo, "repo", "", "plugin repository")

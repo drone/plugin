@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/rogpeppe/go-internal/lockedfile"
+	"golang.org/x/exp/slog"
 )
 
 func Add(key string, addItem func() error) error {
@@ -17,12 +18,19 @@ func Add(key string, addItem func() error) error {
 	}
 
 	lockFpath := filepath.Join(key, ".lock")
+	slog.Debug("taking lock", "key", lockFpath)
 	lock, err := lockedfile.Create(lockFpath)
+	slog.Debug("took lock", "key", lockFpath)
+
 	if err != nil {
 		return errors.Wrap(err, "failed to take file lock")
 	}
-	defer lock.Close()
-
+	defer func() {
+		if err := lock.Close(); err != nil {
+			slog.Error("failed to release lock", "key", lockFpath, "error", err)
+		}
+		slog.Debug("released lock", "key", lockFpath)
+	}()
 	// If data is already present, return
 	if _, err := os.Stat(filepath.Join(key, ".success")); err == nil {
 		return nil
