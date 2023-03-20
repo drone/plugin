@@ -18,12 +18,12 @@ import (
 )
 
 var (
-	name       string // plugin name
-	repo       string // plugin repository
-	ref        string // plugin repository reference
-	sha        string // plugin repository commit
-	kind       string // plugin kind (action, bitrise, harness)
-	outputFile string // plugin outputfile
+	name   string // plugin name
+	repo   string // plugin repository
+	ref    string // plugin repository reference
+	sha    string // plugin repository commit
+	kind   string // plugin kind (action, bitrise, harness)
+	dryRun bool   // plugin won't be executed on setting this flag. Only source will be downloaded. Used for caching the plugin dependencies
 )
 
 func main() {
@@ -35,6 +35,7 @@ func main() {
 	flag.StringVar(&ref, "ref", "", "plugin reference")
 	flag.StringVar(&sha, "sha", "", "plugin commit")
 	flag.StringVar(&kind, "kind", "", "plugin kind")
+	flag.BoolVar(&dryRun, "dry-run", false, "plugin dryRun")
 	flag.Parse()
 
 	// the user may specific the action plugin alias instead
@@ -73,34 +74,19 @@ func main() {
 	// current working directory (workspace)
 	workdir, err := os.Getwd()
 	if err != nil {
-		slog.Error("cannot get workdir", err)
+		slog.Error("cannot get workdir", "error", err)
 		os.Exit(1)
 	}
-
-	// directory to clone the plugin
-	codedir, err := os.MkdirTemp("", "")
-	if err != nil {
-		slog.Error("cannot create clone dir", err)
-		os.Exit(1)
-	}
-	// remove the temporary clone directory
-	// after execution.
-	defer os.RemoveAll(codedir)
 
 	// clone the plugin repository
-	clone := cloner.NewDefault()
-	err = clone.Clone(ctx, cloner.Params{
-		Repo: repo,
-		Ref:  ref,
-		Sha:  sha,
-		Dir:  codedir,
-	})
+	clone := cloner.NewCache(cloner.NewDefault())
+	codedir, err := clone.Clone(ctx, repo, ref, sha)
 	if err != nil {
-		slog.Error("cannot clone the plugin", err)
+		slog.Error("cannot clone the plugin", "error", err)
 		os.Exit(1)
 	}
 
-	outputFile = os.Getenv("DRONE_OUTPUT")
+	outputFile := os.Getenv("DRONE_OUTPUT")
 
 	switch {
 	// execute harness plugin
@@ -113,9 +99,10 @@ func main() {
 			Environ: os.Environ(),
 			Stdout:  os.Stdout,
 			Stderr:  os.Stderr,
+			DryRun:  dryRun,
 		}
 		if err := execer.Exec(ctx); err != nil {
-			slog.Error("step failed", err)
+			slog.Error("step failed", "error", err)
 			os.Exit(1)
 		}
 
@@ -133,7 +120,7 @@ func main() {
 			OutputFile: outputFile,
 		}
 		if err := execer.Exec(ctx); err != nil {
-			slog.Error("step failed", err)
+			slog.Error("step failed", "error", err)
 			os.Exit(1)
 		}
 
@@ -148,7 +135,7 @@ func main() {
 			OutputFile: outputFile,
 		}
 		if err := execer.Exec(ctx); err != nil {
-			slog.Error("action step failed", err)
+			slog.Error("action step failed", "error", err)
 			os.Exit(1)
 		}
 	default:

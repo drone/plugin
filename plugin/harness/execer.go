@@ -22,6 +22,7 @@ type Execer struct {
 	Ref     string // Git ref for source code
 	Source  string // plugin source code directory
 	Workdir string // pipeline working directory (aka workspace)
+	DryRun  bool
 	Environ []string
 	Stdout  io.Writer
 	Stderr  io.Writer
@@ -80,9 +81,14 @@ func (e *Execer) Exec(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		binpath := filepath.Join(e.Source, "step.exe")
-		if err := file.Download(parsedURL, binpath); err != nil {
+		binpath, err := file.Download(parsedURL)
+		if err != nil {
 			return err
+		}
+
+		if e.DryRun {
+			slog.Info("Dry run flag is set. Not executing the plugin")
+			return nil
 		}
 
 		var cmds []*exec.Cmd
@@ -97,21 +103,27 @@ func (e *Execer) Exec(ctx context.Context) error {
 	} else if module := out.Run.Go.Module; module != "" {
 		// if the plugin is a Go module
 
+		if e.DryRun {
+			slog.Info("Dry run flag is set. Not executing the plugin")
+			return nil
+		}
 		slog.Debug("go build", slog.String("module", module))
 
 		// compile the code
 		binpath := filepath.Join(e.Source, "step.exe")
 		cmd := exec.Command("go", "build", "-o", binpath, module)
-		cmd.Env = e.Environ
-		cmd.Dir = e.Source
-		cmd.Stderr = e.Stderr
-		cmd.Stdout = e.Stdout
-		if err := cmd.Run(); err != nil {
+		err = runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Source, e.Stdout, e.Stderr)
+		if err != nil {
 			return err
 		}
 
 		slog.Debug("go run", slog.String("module", module))
 	} else {
+		if e.DryRun {
+			slog.Info("Dry run flag is set. Not executing the plugin")
+			return nil
+		}
+
 		// else if the plugin is a Bash script
 
 		// determine the default script path
@@ -138,11 +150,8 @@ func (e *Execer) Exec(ctx context.Context) error {
 
 		// execute the binary
 		cmd := exec.Command(shell, path)
-		cmd.Env = e.Environ
-		cmd.Dir = e.Workdir
-		cmd.Stderr = e.Stderr
-		cmd.Stdout = e.Stdout
-		if err := cmd.Run(); err != nil {
+		err = runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+		if err != nil {
 			return err
 		}
 	}
