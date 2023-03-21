@@ -12,19 +12,22 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
+	"github.com/drone/plugin/cache"
 	"github.com/drone/plugin/plugin/internal/file"
 	"golang.org/x/exp/slog"
 )
 
 // Execer executes a harness plugin.
 type Execer struct {
-	Ref     string // Git ref for source code
-	Source  string // plugin source code directory
-	Workdir string // pipeline working directory (aka workspace)
-	Environ []string
-	Stdout  io.Writer
-	Stderr  io.Writer
+	Ref          string // Git ref for source code
+	Source       string // plugin source code directory
+	Workdir      string // pipeline working directory (aka workspace)
+	DownloadOnly bool
+	Environ      []string
+	Stdout       io.Writer
+	Stderr       io.Writer
 }
 
 // Exec executes a bitrise plugin.
@@ -80,9 +83,14 @@ func (e *Execer) Exec(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		binpath := filepath.Join(e.Source, "step.exe")
-		if err := file.Download(parsedURL, binpath); err != nil {
+		binpath, err := file.Download(parsedURL)
+		if err != nil {
 			return err
+		}
+
+		if e.DownloadOnly {
+			slog.Info("Download only flag is set. Not executing the plugin")
+			return nil
 		}
 
 		var cmds []*exec.Cmd
@@ -96,22 +104,29 @@ func (e *Execer) Exec(ctx context.Context) error {
 		}
 	} else if module := out.Run.Go.Module; module != "" {
 		// if the plugin is a Go module
-
-		slog.Debug("go build", slog.String("module", module))
-
-		// compile the code
-		binpath := filepath.Join(e.Source, "step.exe")
-		cmd := exec.Command("go", "build", "-o", binpath, module)
-		cmd.Env = e.Environ
-		cmd.Dir = e.Source
-		cmd.Stderr = e.Stderr
-		cmd.Stdout = e.Stdout
-		if err := cmd.Run(); err != nil {
+		binpath, err := e.buildGoExecutable(ctx, module)
+		if err != nil {
 			return err
 		}
 
+		if e.DownloadOnly {
+			slog.Info("Download only flag is set. Not executing the plugin")
+			return nil
+		}
+
 		slog.Debug("go run", slog.String("module", module))
+		// execute the binary
+		cmd := exec.Command(binpath)
+		err = runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+		if err != nil {
+			return err
+		}
 	} else {
+		if e.DownloadOnly {
+			slog.Info("Download only flag is set. Not executing the plugin")
+			return nil
+		}
+
 		// else if the plugin is a Bash script
 
 		// determine the default script path
@@ -138,16 +153,33 @@ func (e *Execer) Exec(ctx context.Context) error {
 
 		// execute the binary
 		cmd := exec.Command(shell, path)
-		cmd.Env = e.Environ
-		cmd.Dir = e.Workdir
-		cmd.Stderr = e.Stderr
-		cmd.Stdout = e.Stdout
-		if err := cmd.Run(); err != nil {
+		err = runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (e *Execer) buildGoExecutable(ctx context.Context, module string) (
+	string, error) {
+	defer timer("buildGoExecutable")()
+	key := e.Source
+	binpath := filepath.Join(e.Source, "step.exe")
+
+	buildFn := func() error {
+		slog.Debug("go build", slog.String("module", module))
+
+		// compile the code
+		cmd := exec.Command("go", "build", "-o", binpath, module)
+		return runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Source, e.Stdout, e.Stderr)
+	}
+
+	if err := cache.Add(key, buildFn); err != nil {
+		return "", err
+	}
+	return binpath, nil
 }
 
 func runCmds(ctx context.Context, cmds []*exec.Cmd, env []string, workdir string,
@@ -171,4 +203,19 @@ func runCmds(ctx context.Context, cmds []*exec.Cmd, env []string, workdir string
 func trace(ctx context.Context, cmd *exec.Cmd) {
 	s := fmt.Sprintf("+ %s\n", strings.Join(cmd.Args, " "))
 	slog.Debug(s)
+}
+
+// timer returns a function that prints the elapsed time between
+// the call to timer and the call to the returned function.
+// The returned function is intended to be used in a defer statement:
+//
+//	defer timer("sum")()
+//
+// Source: https://stackoverflow.com/a/45766707
+func timer(name string) func() {
+	start := time.Now()
+	return func() {
+		slog.Debug("time taken", "name", name,
+			"time_secs", time.Since(start).Seconds())
+	}
 }
