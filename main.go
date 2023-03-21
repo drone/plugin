@@ -100,13 +100,13 @@ func main() {
 	case harness.Is(codedir) || kind == "harness":
 		slog.Info("detected harness plugin.yml")
 		execer := harness.Execer{
-			Source:  codedir,
-			Workdir: workdir,
-			Ref:     ref,
-			Environ: os.Environ(),
-			Stdout:  os.Stdout,
-			Stderr:  os.Stderr,
-			DryRun:  downloadOnly,
+			Source:       codedir,
+			Workdir:      workdir,
+			Ref:          ref,
+			Environ:      os.Environ(),
+			Stdout:       os.Stdout,
+			Stderr:       os.Stderr,
+			DownloadOnly: downloadOnly,
 		}
 		if err := execer.Exec(ctx); err != nil {
 			slog.Error("step failed", "error", err)

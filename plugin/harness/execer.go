@@ -21,13 +21,13 @@ import (
 
 // Execer executes a harness plugin.
 type Execer struct {
-	Ref     string // Git ref for source code
-	Source  string // plugin source code directory
-	Workdir string // pipeline working directory (aka workspace)
-	DryRun  bool
-	Environ []string
-	Stdout  io.Writer
-	Stderr  io.Writer
+	Ref          string // Git ref for source code
+	Source       string // plugin source code directory
+	Workdir      string // pipeline working directory (aka workspace)
+	DownloadOnly bool
+	Environ      []string
+	Stdout       io.Writer
+	Stderr       io.Writer
 }
 
 // Exec executes a bitrise plugin.
@@ -88,8 +88,8 @@ func (e *Execer) Exec(ctx context.Context) error {
 			return err
 		}
 
-		if e.DryRun {
-			slog.Info("Dry run flag is set. Not executing the plugin")
+		if e.DownloadOnly {
+			slog.Info("Download only flag is set. Not executing the plugin")
 			return nil
 		}
 
@@ -104,14 +104,14 @@ func (e *Execer) Exec(ctx context.Context) error {
 		}
 	} else if module := out.Run.Go.Module; module != "" {
 		// if the plugin is a Go module
-
-		if e.DryRun {
-			slog.Info("Dry run flag is set. Not executing the plugin")
-			return nil
-		}
 		binpath, err := e.buildGoExecutable(ctx, module)
 		if err != nil {
 			return err
+		}
+
+		if e.DownloadOnly {
+			slog.Info("Download only flag is set. Not executing the plugin")
+			return nil
 		}
 
 		slog.Debug("go run", slog.String("module", module))
@@ -122,8 +122,8 @@ func (e *Execer) Exec(ctx context.Context) error {
 			return err
 		}
 	} else {
-		if e.DryRun {
-			slog.Info("Dry run flag is set. Not executing the plugin")
+		if e.DownloadOnly {
+			slog.Info("Download only flag is set. Not executing the plugin")
 			return nil
 		}
 
