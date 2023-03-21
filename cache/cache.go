@@ -12,6 +12,10 @@ import (
 	"golang.org/x/exp/slog"
 )
 
+const (
+	completionMarkerFile = ".done"
+)
+
 func Add(key string, addItem func() error) error {
 	if err := os.MkdirAll(key, 0700); err != nil {
 		return errors.Wrap(err, fmt.Sprintf("failed to create directory %s", key))
@@ -32,7 +36,7 @@ func Add(key string, addItem func() error) error {
 		slog.Debug("released lock", "key", lockFpath)
 	}()
 	// If data is already present, return
-	if _, err := os.Stat(filepath.Join(key, ".success")); err == nil {
+	if _, err := os.Stat(filepath.Join(key, completionMarkerFile)); err == nil {
 		return nil
 	}
 
@@ -40,7 +44,7 @@ func Add(key string, addItem func() error) error {
 		return errors.Wrap(err, fmt.Sprintf("failed to add item: %s to cache", key))
 	}
 
-	integrityFpath := filepath.Join(key, ".success")
+	integrityFpath := filepath.Join(key, completionMarkerFile)
 	f, err := os.Create(integrityFpath)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("failed to create integrity file: %s", integrityFpath))
