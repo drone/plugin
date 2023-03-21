@@ -21,19 +21,19 @@ func Add(key string, addItem func() error) error {
 		return errors.Wrap(err, fmt.Sprintf("failed to create directory %s", key))
 	}
 
-	lockFpath := filepath.Join(key, ".lock")
-	slog.Debug("taking lock", "key", lockFpath)
-	lock, err := lockedfile.Create(lockFpath)
-	slog.Debug("took lock", "key", lockFpath)
+	lockFilepath := filepath.Join(key, ".started")
+	slog.Debug("taking lock", "key", lockFilepath)
+	lock, err := lockedfile.Create(lockFilepath)
+	slog.Debug("took lock", "key", lockFilepath)
 
 	if err != nil {
 		return errors.Wrap(err, "failed to take file lock")
 	}
 	defer func() {
 		if err := lock.Close(); err != nil {
-			slog.Error("failed to release lock", "key", lockFpath, "error", err)
+			slog.Error("failed to release lock", "key", lockFilepath, "error", err)
 		}
-		slog.Debug("released lock", "key", lockFpath)
+		slog.Debug("released lock", "key", lockFilepath)
 	}()
 	// If data is already present, return
 	if _, err := os.Stat(filepath.Join(key, completionMarkerFile)); err == nil {
