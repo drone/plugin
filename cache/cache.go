@@ -50,6 +50,8 @@ func Add(key string, addItem func() error) error {
 	return nil
 }
 
+// GetKeyName generate unique file path inside cache directory
+// based on name provided
 func GetKeyName(name string) string {
 	return filepath.Join(getCacheDir(), sha(name))
 }
