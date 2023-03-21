@@ -18,6 +18,7 @@ type cacheCloner struct {
 	cloner Cloner
 }
 
+// Clone method clones the repository & caches it if not present in cache already.
 func (c *cacheCloner) Clone(ctx context.Context, repo, ref, sha string) (string, error) {
 	key := cache.GetKeyName(fmt.Sprintf("%s%s%s", repo, ref, sha))
 	codedir := filepath.Join(key, "data")

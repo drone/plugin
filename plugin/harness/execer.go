@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/drone/plugin/cache"
 	"github.com/drone/plugin/plugin/internal/file"
@@ -163,6 +164,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 
 func (e *Execer) buildGoExecutable(ctx context.Context, module string) (
 	string, error) {
+	defer timer("buildGoExecutable")()
 	key := e.Source
 	binpath := filepath.Join(e.Source, "step.exe")
 
@@ -201,4 +203,19 @@ func runCmds(ctx context.Context, cmds []*exec.Cmd, env []string, workdir string
 func trace(ctx context.Context, cmd *exec.Cmd) {
 	s := fmt.Sprintf("+ %s\n", strings.Join(cmd.Args, " "))
 	slog.Debug(s)
+}
+
+// timer returns a function that prints the elapsed time between
+// the call to timer and the call to the returned function.
+// The returned function is intended to be used in a defer statement:
+//
+//	defer timer("sum")()
+//
+// Source: https://stackoverflow.com/a/45766707
+func timer(name string) func() {
+	start := time.Now()
+	return func() {
+		slog.Debug("time taken", "name", name,
+			"time_secs", time.Since(start).Seconds())
+	}
 }

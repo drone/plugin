@@ -18,12 +18,12 @@ import (
 )
 
 var (
-	name   string // plugin name
-	repo   string // plugin repository
-	ref    string // plugin repository reference
-	sha    string // plugin repository commit
-	kind   string // plugin kind (action, bitrise, harness)
-	dryRun bool   // plugin won't be executed on setting this flag. Only source will be downloaded. Used for caching the plugin dependencies
+	name         string // plugin name
+	repo         string // plugin repository
+	ref          string // plugin repository reference
+	sha          string // plugin repository commit
+	kind         string // plugin kind (action, bitrise, harness)
+	downloadOnly bool   // plugin won't be executed on setting this flag. Only source will be downloaded. Used for caching the plugin dependencies
 )
 
 func main() {
@@ -42,7 +42,7 @@ func main() {
 	flag.StringVar(&ref, "ref", "", "plugin reference")
 	flag.StringVar(&sha, "sha", "", "plugin commit")
 	flag.StringVar(&kind, "kind", "", "plugin kind")
-	flag.BoolVar(&dryRun, "dry-run", false, "plugin dryRun")
+	flag.BoolVar(&downloadOnly, "download-only", false, "plugin downloadOnly")
 	flag.Parse()
 
 	// the user may specific the action plugin alias instead
@@ -106,7 +106,7 @@ func main() {
 			Environ: os.Environ(),
 			Stdout:  os.Stdout,
 			Stderr:  os.Stderr,
-			DryRun:  dryRun,
+			DryRun:  downloadOnly,
 		}
 		if err := execer.Exec(ctx); err != nil {
 			slog.Error("step failed", "error", err)

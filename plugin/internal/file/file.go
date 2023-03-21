@@ -33,7 +33,7 @@ func Download(url string) (string, error) {
 	return binPath, nil
 }
 
-// Download method downloads a source & writes it to a file.
+// download method downloads a source & writes it to a file.
 // If file is compressed, it also decompresses the file on the basis of
 // file extension in url. Currently it supports zstd format.
 func download(url, path string) error {
