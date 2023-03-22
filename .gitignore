@@ -4,3 +4,4 @@
 _*.md
 .vscode
 .idea
+release/
