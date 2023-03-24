@@ -22,7 +22,7 @@ func getOutputVars(codedir, name string) []string {
 		slog.Warn(fmt.Sprintf("failed to parse output vars: %v", err))
 	}
 
-	if spec.Outputs != nil {
+	if spec != nil && spec.Outputs != nil {
 		for k := range spec.Outputs {
 			outputVars = append(outputVars, k)
 		}
