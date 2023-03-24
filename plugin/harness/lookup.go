@@ -38,24 +38,27 @@ func ParseLookup(s string) (repo string, commit string, ok bool) {
 	// repository url was provided directly.
 	if strings.HasPrefix(s, "git:") || strings.HasPrefix(s, "github.com") {
 		// trim the git:: prefix
-		s = strings.TrimPrefix(s, "git::")
-
-		// prepend the https scheme if not includes in the
-		// github repository url.
-		if strings.HasPrefix(s, "github.com") {
-			s = "https://" + s
-			// append the .git suffix to the github
-			// repository url if not provided.
-			if !strings.HasSuffix(s, ".git") {
-				s = s + ".git"
-			}
-		}
+		repo = strings.TrimPrefix(s, "git::")
 
 		// extract the version from the string, if provided.
 		if parts := strings.SplitN(s, "@", 2); len(parts) == 2 {
-			return parts[0], parts[1], true
+			repo = parts[0]
+			commit = parts[1]
 		}
-		return s, "", true
+
+		// prepend the https scheme if not includes in the
+		// github repository url.
+		if strings.HasPrefix(repo, "github.com") {
+			repo = "https://" + repo
+
+			// append the .git suffix to the github
+			// repository url if not provided.
+			if !strings.HasSuffix(repo, ".git") {
+				repo = repo + ".git"
+			}
+		}
+
+		return repo, commit, true
 	}
 
 	if parts := strings.SplitN(s, "@", 2); len(parts) == 2 {

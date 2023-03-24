@@ -27,6 +27,11 @@ func TestParseLookup(t *testing.T) {
 			repo: "https://github.com/ocotcat/hello-world.git",
 			hash: "",
 		},
+		{
+			name: "github.com/ocotcat/hello-world@a8b99ea78c8f99326516d6b875075ead642b4ca5",
+			repo: "https://github.com/ocotcat/hello-world.git",
+			hash: "a8b99ea78c8f99326516d6b875075ead642b4ca5",
+		},
 	}
 	for _, test := range tests {
 		repo, commit, _ := ParseLookup(test.name)
