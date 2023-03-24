@@ -14,6 +14,7 @@ require (
 	github.com/nektos/act v0.2.43
 	github.com/pkg/errors v0.9.1
 	github.com/rogpeppe/go-internal v1.9.0
+	github.com/stretchr/testify v1.8.2
 	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -31,6 +32,7 @@ require (
 	github.com/cloudflare/circl v1.3.2 // indirect
 	github.com/containerd/containerd v1.7.0 // indirect
 	github.com/creack/pty v1.1.18 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/cli v23.0.1+incompatible // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/docker v23.0.1+incompatible // indirect
@@ -63,6 +65,7 @@ require (
 	github.com/opencontainers/runc v1.1.4 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rhysd/actionlint v1.6.23 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
