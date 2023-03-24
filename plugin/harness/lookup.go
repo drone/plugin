@@ -8,7 +8,7 @@ import "strings"
 
 // Lookup returns the repository and commit associated
 // with the named step and version.
-func Lookup(name, version string) (repo string, commit string, ok bool) {
+func Lookup(name, version string) (repo string, ref string, commit string, ok bool) {
 	// find the named step
 	plugin_, ok := index[name]
 	if !ok {
@@ -16,7 +16,7 @@ func Lookup(name, version string) (repo string, commit string, ok bool) {
 	}
 	// use head commit if no version is provided.
 	if version == "" {
-		return plugin_.repo, "", ok
+		return plugin_.repo, "", "", ok
 	}
 
 	// TODO(bradrydzeski) we should be able to use smart
@@ -28,12 +28,12 @@ func Lookup(name, version string) (repo string, commit string, ok bool) {
 	if !ok {
 		return
 	}
-	return plugin_.repo, version_, ok
+	return plugin_.repo, "", version_, ok
 }
 
 // ParseLookup parses the step string and returns the
 // associated repository and commit.
-func ParseLookup(s string) (repo string, commit string, ok bool) {
+func ParseLookup(s string) (repo string, ref string, commit string, ok bool) {
 	// if the strings is prefixed with git:: it means the
 	// repository url was provided directly.
 	if strings.HasPrefix(s, "git:") || strings.HasPrefix(s, "github.com") {
@@ -43,7 +43,11 @@ func ParseLookup(s string) (repo string, commit string, ok bool) {
 		// extract the version from the string, if provided.
 		if parts := strings.SplitN(s, "@", 2); len(parts) == 2 {
 			repo = parts[0]
-			commit = parts[1]
+			if strings.HasPrefix(parts[1], "refs/") {
+				ref = parts[1]
+			} else {
+				commit = parts[1]
+			}
 		}
 
 		// prepend the https scheme if not includes in the
@@ -58,7 +62,7 @@ func ParseLookup(s string) (repo string, commit string, ok bool) {
 			}
 		}
 
-		return repo, commit, true
+		return repo, ref, commit, true
 	}
 
 	if parts := strings.SplitN(s, "@", 2); len(parts) == 2 {

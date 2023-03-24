@@ -24,7 +24,10 @@ func Download(url string) (string, error) {
 	binPath := filepath.Join(key, "step.exe")
 
 	downloadFn := func() error {
-		return download(url, binPath)
+		if err := download(url, binPath); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("url: %s", url))
+		}
+		return nil
 	}
 
 	if err := cache.Add(key, downloadFn); err != nil {
@@ -42,7 +45,7 @@ func download(url, path string) error {
 	}
 	resp, err := client.Get(url)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to download url: %s", url))
+		return errors.Wrap(err, "failed to download url")
 	}
 	defer resp.Body.Close()
 

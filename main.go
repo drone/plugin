@@ -60,9 +60,10 @@ func main() {
 	// of the git repository. We are able to lookup the plugin
 	// by alias to find the corresponding repository and commit.
 	if repo == "" && kind == "harness" {
-		repo_, sha_, ok := harness.ParseLookup(name)
+		repo_, ref_, sha_, ok := harness.ParseLookup(name)
 		if ok {
 			repo = repo_
+			ref = ref_
 			sha = sha_
 		}
 	}
