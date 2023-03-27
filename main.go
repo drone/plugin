@@ -98,7 +98,7 @@ func main() {
 
 	switch {
 	// execute harness plugin
-	case harness.Is(codedir) || kind == "harness":
+	case kind == "harness" || (kind == "" && harness.Is(codedir)):
 		slog.Info("detected harness plugin.yml")
 		execer := harness.Execer{
 			Source:       codedir,
@@ -115,7 +115,7 @@ func main() {
 		}
 
 	// execute bitrise plugin
-	case bitrise.Is(codedir) || kind == "bitrise":
+	case kind == "bitrise" || (kind == "" && bitrise.Is(codedir)):
 		slog.Info("detected bitrise step.yml")
 		execer := bitrise.Execer{
 			Source:  codedir,
