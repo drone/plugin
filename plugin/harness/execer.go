@@ -127,15 +127,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 			return nil
 		}
 
-		// else if the plugin is a Bash script
-
-		// determine the default script path
-		script := out.Run.Bash.Path
-		shell := "/bin/bash"
-		path := filepath.Join(e.Source, script)
-
-		slog.Debug("execute", slog.String("file", script))
-
+		var path, shell string
 		// if the bash shell does not exist fallback
 		// to posix shell.
 		switch runtime.GOOS {
@@ -143,13 +135,19 @@ func (e *Execer) Exec(ctx context.Context) error {
 			// TODO we may want to disable profile and interactive mode
 			// when executing powershell scripts -noprofile -noninteractive
 			shell = "powershell"
+			path = filepath.Join(e.Source, out.Run.Pwsh.Path)
+
 		case "linux", "darwin":
+			shell = "bash"
+			path = filepath.Join(e.Source, out.Run.Bash.Path)
+
 			// fallback to the posix shell if bash
 			// is not available on the host.
 			if _, err := exec.LookPath("bash"); err != nil {
-				shell = "/bin/sh"
+				shell = "sh"
 			}
 		}
+		slog.Debug("execute", slog.String("file", path))
 
 		// execute the binary
 		cmd := exec.Command(shell, path)

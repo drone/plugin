@@ -13,6 +13,7 @@ import (
 	"github.com/drone/plugin/cache"
 	"github.com/klauspost/compress/zstd"
 	"github.com/pkg/errors"
+	"golang.org/x/exp/slog"
 )
 
 const (
@@ -24,7 +25,7 @@ func Download(url string) (string, error) {
 	binPath := filepath.Join(key, "step.exe")
 
 	downloadFn := func() error {
-		if err := download(url, binPath); err != nil {
+		if err := downloadWithRetries(url, binPath); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("url: %s", url))
 		}
 		return nil
@@ -34,6 +35,18 @@ func Download(url string) (string, error) {
 		return "", err
 	}
 	return binPath, nil
+}
+
+func downloadWithRetries(url, path string) error {
+	var err error
+	for i := 0; i < 3; i++ {
+		if err = download(url, path); err == nil {
+			return nil
+		}
+		slog.Error("failed to download url, retrying", slog.String("url", url), "error", err)
+		time.Sleep(1 * time.Second)
+	}
+	return err
 }
 
 // download method downloads a source & writes it to a file.
