@@ -79,85 +79,87 @@ func (e *Execer) Exec(ctx context.Context) error {
 	// execute the plugin. the execution logic differs
 	// based on programming language.
 	if source := out.Run.Binary.Source; source != "" {
-		parsedURL, err := NewMetadata(source, e.Ref).Generate()
-		if err != nil {
-			return err
-		}
-		binpath, err := file.Download(parsedURL)
-		if err != nil {
-			return err
-		}
-
-		if e.DownloadOnly {
-			slog.Info("Download only flag is set. Not executing the plugin")
-			return nil
-		}
-
-		var cmds []*exec.Cmd
-		if runtime.GOOS != "windows" {
-			cmds = append(cmds, exec.Command("chmod", "+x", binpath))
-		}
-		cmds = append(cmds, exec.Command(binpath))
-		err = runCmds(ctx, cmds, e.Environ, e.Workdir, e.Stdout, e.Stderr)
-		if err != nil {
-			return err
-		}
+		return e.runSourceExecutable(ctx, out.Run.Binary.Source)
 	} else if module := out.Run.Go.Module; module != "" {
-		// if the plugin is a Go module
-		binpath, err := e.buildGoExecutable(ctx, module)
-		if err != nil {
-			return err
-		}
-
-		if e.DownloadOnly {
-			slog.Info("Download only flag is set. Not executing the plugin")
-			return nil
-		}
-
-		slog.Debug("go run", slog.String("module", module))
-		// execute the binary
-		cmd := exec.Command(binpath)
-		err = runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
-		if err != nil {
-			return err
-		}
+		return e.runGoExecutable(ctx, module)
 	} else {
-		if e.DownloadOnly {
-			slog.Info("Download only flag is set. Not executing the plugin")
-			return nil
-		}
-
-		var path, shell string
-		// if the bash shell does not exist fallback
-		// to posix shell.
-		switch runtime.GOOS {
-		case "windows":
-			// TODO we may want to disable profile and interactive mode
-			// when executing powershell scripts -noprofile -noninteractive
-			shell = "powershell"
-			path = filepath.Join(e.Source, out.Run.Pwsh.Path)
-
-		case "linux", "darwin":
-			shell = "bash"
-			path = filepath.Join(e.Source, out.Run.Bash.Path)
-
-			// fallback to the posix shell if bash
-			// is not available on the host.
-			if _, err := exec.LookPath("bash"); err != nil {
-				shell = "sh"
-			}
-		}
-		slog.Debug("execute", slog.String("file", path))
-
-		// execute the binary
-		cmd := exec.Command(shell, path)
-		err = runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
-		if err != nil {
-			return err
-		}
+		return e.runShellExecutable(ctx, out)
 	}
 
 	return nil
+}
+
+func (e *Execer) runSourceExecutable(ctx context.Context, source string) error {
+	parsedURL, err := NewMetadata(source, e.Ref).Generate()
+	if err != nil {
+		return err
+	}
+	binpath, err := file.Download(parsedURL)
+	if err != nil {
+		return err
+	}
+
+	if e.DownloadOnly {
+		slog.Info("Download only flag is set. Not executing the plugin")
+		return nil
+	}
+
+	var cmds []*exec.Cmd
+	if runtime.GOOS != "windows" {
+		cmds = append(cmds, exec.Command("chmod", "+x", binpath))
+	}
+	cmds = append(cmds, exec.Command(binpath))
+	return runCmds(ctx, cmds, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+}
+
+func (e *Execer) runGoExecutable(ctx context.Context, module string) error {
+	// if the plugin is a Go module
+	binpath, err := e.buildGoExecutable(ctx, module)
+	if err != nil {
+		return err
+	}
+
+	if e.DownloadOnly {
+		slog.Info("Download only flag is set. Not executing the plugin")
+		return nil
+	}
+
+	slog.Debug("go run", slog.String("module", module))
+	// execute the binary
+	cmd := exec.Command(binpath)
+	return runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+}
+
+func (e *Execer) runShellExecutable(ctx context.Context, out *spec) error {
+	if e.DownloadOnly {
+		slog.Info("Download only flag is set. Not executing the plugin")
+		return nil
+	}
+
+	switch runtime.GOOS {
+	case "windows":
+		// TODO we may want to disable profile and interactive mode
+		// when executing powershell scripts -noprofile -noninteractive
+		path := filepath.Join(e.Source, out.Run.Pwsh.Path)
+		slog.Debug("execute", slog.String("file", path))
+		cmd := exec.Command("pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue'; %s", path)
+		return runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+	case "linux", "darwin":
+		path := filepath.Join(e.Source, out.Run.Bash.Path)
+
+		// fallback to the posix shell if bash
+		// is not available on the host.
+		shell := "bash"
+		if _, err := exec.LookPath("bash"); err != nil {
+			shell = "sh"
+		}
+		slog.Debug("execute", slog.String("file", path))
+
+		cmd := exec.Command(shell, path)
+		return runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+	default:
+		return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
+	}
 }
 
 func (e *Execer) buildGoExecutable(ctx context.Context, module string) (
