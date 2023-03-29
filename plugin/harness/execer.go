@@ -142,7 +142,9 @@ func (e *Execer) runShellExecutable(ctx context.Context, out *spec) error {
 		// when executing powershell scripts -noprofile -noninteractive
 		path := filepath.Join(e.Source, out.Run.Pwsh.Path)
 		slog.Debug("execute", slog.String("file", path))
-		cmd := exec.Command("pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue'; %s", path)
+		script := fmt.Sprintf(
+			"$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue'; %s", path)
+		cmd := exec.Command("pwsh", "-Command", script)
 		return runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
 	case "linux", "darwin":
 		path := filepath.Join(e.Source, out.Run.Bash.Path)
