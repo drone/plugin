@@ -59,25 +59,26 @@ func Environ(src []string) []string {
 		"BITRISEIO_PULL_REQUEST_HEAD_BRANCH":    dst["DRONE_TARGET_BRANCH"],
 		"BITRISEIO_PIPELINE_ID":                 firstMatch(dst, "HARNESS_PIPELINE_ID", "DRONE_STAGE_NAME"),
 		"BITRISEIO_PIPELINE_TITLE":              firstMatch(dst, "HARNESS_PIPELINE_ID", "DRONE_STAGE_NAME"),
+		"BITRISEIO_FINISHED_STAGES":             "", // TODO
 		"BITRISE_GIT_BRANCH":                    dst["DRONE_BRANCH"],
 		"BITRISE_GIT_TAG":                       dst["DRONE_TAG"],
 		"BITRISE_GIT_COMMIT":                    dst["DRONE_COMMIT_SHA"],
 		"BITRISE_GIT_MESSAGE":                   dst["DRONE_COMMIT_MESSAGE"],
 		"BITRISE_BUILD_NUMBER":                  dst["DRONE_BUILD_NUMBER"],
-		"BITRISE_BUILD_URL":                     dst["DRONE_BUILD_LINK"], // MISSING IN HARNESS
 		"BITRISE_BUILD_SLUG":                    dst["DRONE_BUILD_NUMBER"],
 		"BITRISE_BUILD_TRIGGER_TIMESTAMP":       dst["DRONE_BUILD_CREATED"],                              // MISSING IN HARNESS
+		"BITRISE_BUILD_URL":                     dst["DRONE_BUILD_LINK"],                                 // MISSING IN HARNESS
 		"BITRISE_PULL_REQUEST":                  dst["DRONE_PULL_REQUEST"],                               // MISSING IN HARNESS
 		"BITRISE_SOURCE_DIR":                    firstMatch(dst, "DRONE_WORKSPACE", "HARNESS_WORKSPACE"), // MISSING IN HARNESS
 		"BITRISE_DEPLOY_DIR":                    "",                                                      // TODO
-		"BITRISE_TRIGGERED_WORKFLOW_ID":         "",                                                      // TODO
-		"BITRISE_TRIGGERED_WORKFLOW_TITLE":      "",                                                      // TODO
-		"BITRISE_APP_TITLE":                     "",                                                      // TODO
-		"BITRISE_APP_URL":                       "",                                                      // TODO
-		"BITRISE_APP_SLUG":                      "",                                                      // TODO
-		"BITRISE_PROVISION_URL":                 "",                                                      // TODO
-		"BITRISE_CERTIFICATE_URL":               "",                                                      // TODO
-		"BITRISE_CERTIFICATE_PASSPHRASE":        "",                                                      // TODO
+		"BITRISE_TRIGGERED_WORKFLOW_ID":         dst["HARNESS_PIPELINE_ID"],
+		"BITRISE_TRIGGERED_WORKFLOW_TITLE":      dst["HARNESS_PIPELINE_ID"],
+		"BITRISE_APP_TITLE":                     "", // TODO
+		"BITRISE_APP_URL":                       "", // TODO
+		"BITRISE_APP_SLUG":                      "", // TODO
+		"BITRISE_PROVISION_URL":                 "", // TODO
+		"BITRISE_CERTIFICATE_URL":               "", // TODO
+		"BITRISE_CERTIFICATE_PASSPHRASE":        "", // TODO
 	})
 
 	// is pipeline a pull request?
