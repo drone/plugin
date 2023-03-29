@@ -60,9 +60,10 @@ func main() {
 	// of the git repository. We are able to lookup the plugin
 	// by alias to find the corresponding repository and commit.
 	if repo == "" && kind == "harness" {
-		repo_, sha_, ok := harness.ParseLookup(name)
+		repo_, ref_, sha_, ok := harness.ParseLookup(name)
 		if ok {
 			repo = repo_
+			ref = ref_
 			sha = sha_
 		}
 	}
@@ -97,7 +98,7 @@ func main() {
 
 	switch {
 	// execute harness plugin
-	case harness.Is(codedir) || kind == "harness":
+	case kind == "harness" || (kind == "" && harness.Is(codedir)):
 		slog.Info("detected harness plugin.yml")
 		execer := harness.Execer{
 			Source:       codedir,
@@ -114,7 +115,7 @@ func main() {
 		}
 
 	// execute bitrise plugin
-	case bitrise.Is(codedir) || kind == "bitrise":
+	case kind == "bitrise" || (kind == "" && bitrise.Is(codedir)):
 		slog.Info("detected bitrise step.yml")
 		execer := bitrise.Execer{
 			Source:  codedir,

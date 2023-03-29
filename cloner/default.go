@@ -6,8 +6,10 @@ package cloner
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -66,9 +68,25 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 	}
 	// clone the repository
 	r, err := git.PlainClone(params.Dir, false, opts)
-	if err != nil {
+	if errors.Is(plumbing.ErrReferenceNotFound, err) && !strings.HasPrefix(params.Ref, "refs/") {
+		// If params.Ref is provided without refs/*, then we are assuming it to either refs/heads/ or refs/tags.
+		// Try clone again with inverse ref.
+		if opts.ReferenceName.IsBranch() {
+			opts.ReferenceName = plumbing.ReferenceName("refs/tags/" + params.Ref)
+		} else if opts.ReferenceName.IsTag() {
+			opts.ReferenceName = plumbing.ReferenceName("refs/heads/" + params.Ref)
+		} else {
+			return err
+		}
+
+		r, err = git.PlainClone(params.Dir, false, opts)
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
 		return err
 	}
+
 	if params.Sha == "" {
 		return nil
 	}
