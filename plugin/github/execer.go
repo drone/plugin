@@ -35,6 +35,8 @@ func (e *Execer) Exec(ctx context.Context) error {
 		return err
 	}
 
+	os.Setenv("XDG_CACHE_HOME", tmpDir)
+
 	envVars := environ.Map(e.Environ)
 	outputVars := getOutputVars(e.Source, e.Name)
 
