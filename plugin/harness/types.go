@@ -7,8 +7,9 @@ package harness
 // spec defines the bitrise plugin.
 type spec struct {
 	Deps struct {
-		Brew []string
-		Apt  []string
+		Brew  []string
+		Apt   []string
+		Choco []string
 	}
 	Run struct {
 		Docker struct {
