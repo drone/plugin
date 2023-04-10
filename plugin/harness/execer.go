@@ -38,42 +38,13 @@ func (e *Execer) Exec(ctx context.Context) error {
 		return err
 	}
 
-	// install linux dependencies
+	// install dependencies
 	if runtime.GOOS == "linux" {
-		if len(out.Deps.Apt) > 0 {
-			slog.Debug("apt-get update")
-
-			cmd := exec.Command("sudo", "apt-get", "update")
-			cmd.Env = e.Environ
-			cmd.Dir = e.Workdir
-			cmd.Stderr = e.Stderr
-			cmd.Stdout = e.Stdout
-			cmd.Run()
-		}
-
-		for _, item := range out.Deps.Apt {
-			slog.Debug("apt-get install", slog.String("package", item))
-
-			cmd := exec.Command("sudo", "apt-get", "install", item)
-			cmd.Env = e.Environ
-			cmd.Stderr = e.Stderr
-			cmd.Stdout = e.Stdout
-			cmd.Run()
-		}
-	}
-
-	// install darwin dependencies
-	if runtime.GOOS == "darwin" {
-		for _, item := range out.Deps.Brew {
-			slog.Debug("brew install", slog.String("package", item))
-
-			cmd := exec.Command("brew", "install", item)
-			cmd.Env = e.Environ
-			cmd.Dir = e.Workdir
-			cmd.Stderr = e.Stderr
-			cmd.Stdout = e.Stdout
-			cmd.Run()
-		}
+		e.installAptDeps(ctx, out.Deps.Apt)
+	} else if runtime.GOOS == "darwin" {
+		e.installBrewDeps(ctx, out.Deps.Brew)
+	} else if runtime.GOOS == "windows" {
+		e.installChocoDeps(ctx, out.Deps.Choco)
 	}
 
 	// execute the plugin. the execution logic differs
@@ -85,8 +56,6 @@ func (e *Execer) Exec(ctx context.Context) error {
 	} else {
 		return e.runShellExecutable(ctx, out)
 	}
-
-	return nil
 }
 
 func (e *Execer) runSourceExecutable(ctx context.Context, source string) error {
@@ -182,6 +151,53 @@ func (e *Execer) buildGoExecutable(ctx context.Context, module string) (
 		return "", err
 	}
 	return binpath, nil
+}
+
+func (e *Execer) installAptDeps(ctx context.Context, deps []string) {
+	if len(deps) > 0 {
+		slog.Debug("apt-get update")
+
+		cmd := exec.Command("sudo", "apt-get", "update")
+		if err := runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir,
+			e.Stdout, e.Stderr); err != nil {
+			slog.Error("apt-get update failed", "error", err)
+		}
+
+	}
+
+	for _, item := range deps {
+		slog.Debug("apt-get install", slog.String("package", item))
+
+		cmd := exec.Command("sudo", "apt-get", "install", item)
+		if err := runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir,
+			e.Stdout, e.Stderr); err != nil {
+			slog.Error("apt-get install failed", slog.String("package", item), "error", err)
+		}
+	}
+}
+
+func (e *Execer) installBrewDeps(ctx context.Context, deps []string) {
+	for _, item := range deps {
+		slog.Debug("brew install", slog.String("package", item))
+
+		cmd := exec.Command("brew", "install", item)
+		if err := runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir,
+			e.Stdout, e.Stderr); err != nil {
+			slog.Error("brew install failed", slog.String("package", item), "error", err)
+		}
+	}
+}
+
+func (e *Execer) installChocoDeps(ctx context.Context, deps []string) {
+	for _, item := range deps {
+		slog.Debug("choco install", slog.String("package", item))
+
+		cmd := exec.Command("choco", "install", item)
+		if err := runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir,
+			e.Stdout, e.Stderr); err != nil {
+			slog.Error("choco install failed", slog.String("package", item), "error", err)
+		}
+	}
 }
 
 func runCmds(ctx context.Context, cmds []*exec.Cmd, env []string, workdir string,
