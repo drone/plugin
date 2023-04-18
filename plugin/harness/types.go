@@ -14,7 +14,7 @@ type (
 	}
 
 	Apt struct {
-		Packages []string     `yaml:"pakages,omitempty"`
+		Packages []string     `yaml:"packages,omitempty"`
 		Sources  []*AptSource `yaml:"sources,omitempty"`
 	}
 )
