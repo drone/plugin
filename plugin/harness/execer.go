@@ -160,7 +160,7 @@ func (e *Execer) installAptDeps(ctx context.Context, deps []string, sources []*A
 			continue
 		}
 
-		cmdStr := fmt.Sprintf("wget -qO - %s | sudo apt-key add - echo \"%s\" | sudo tee -a /etc/apt/sources.list", source.Key, source.Data)
+		cmdStr := fmt.Sprintf("wget -qO - %s | sudo apt-key add -\n echo \"%s\" | sudo tee -a /etc/apt/sources.list", source.Key, source.Data)
 		fmt.Println(cmdStr)
 		cmd := exec.Command("bash", "-c", cmdStr)
 		if err := runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir,
