@@ -7,6 +7,7 @@ package harness
 import (
 	"io/ioutil"
 
+	"golang.org/x/exp/slog"
 	"gopkg.in/yaml.v2"
 )
 
@@ -23,6 +24,7 @@ func parseFile(s string) (*spec, error) {
 	if err != nil {
 		return nil, err
 	}
+	slog.Debug("parsing plugin.yml", slog.String("file", string(raw)))
 	return parse(raw)
 }
 
