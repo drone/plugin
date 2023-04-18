@@ -49,7 +49,10 @@ type spec struct {
 // UnmarshalYAML implements the unmarshal interface.
 func (v *Apt) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var out1 []string
-	var out2 = Apt{}
+	var out2 = struct {
+		Packages []string     `yaml:"packages,omitempty"`
+		Sources  []*AptSource `yaml:"sources,omitempty"`
+	}{}
 
 	if err := unmarshal(&out1); err == nil {
 		v.Packages = out1
