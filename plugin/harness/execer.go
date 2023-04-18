@@ -40,7 +40,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 
 	// install dependencies
 	if runtime.GOOS == "linux" {
-		e.installAptDeps(ctx, out.Deps.Apt)
+		e.installAptDeps(ctx, out.Deps.Apt.Packages, out.Deps.Apt.Sources)
 	} else if runtime.GOOS == "darwin" {
 		e.installBrewDeps(ctx, out.Deps.Brew)
 	} else if runtime.GOOS == "windows" {
@@ -153,7 +153,22 @@ func (e *Execer) buildGoExecutable(ctx context.Context, module string) (
 	return binpath, nil
 }
 
-func (e *Execer) installAptDeps(ctx context.Context, deps []string) {
+func (e *Execer) installAptDeps(ctx context.Context, deps []string, sources []*AptSource) {
+	for _, source := range sources {
+		if source == nil || source.Key == "" || source.Data == "" {
+			slog.Info("Either key or data is not set", slog.String("source", source.Data), slog.String("key", source.Key))
+			continue
+		}
+
+		cmdStr := fmt.Sprintf("wget -qO - %s | sudo apt-key add -\n echo \"%s\" | sudo tee -a /etc/apt/sources.list", source.Key, source.Data)
+		slog.Info("add-apt-repository", slog.String("cmd", cmdStr))
+		cmd := exec.Command("bash", "-c", cmdStr)
+		if err := runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir,
+			e.Stdout, e.Stderr); err != nil {
+			slog.Error("add-apt-repository failed", "error", err)
+		}
+	}
+
 	if len(deps) > 0 {
 		slog.Debug("apt-get update")
 

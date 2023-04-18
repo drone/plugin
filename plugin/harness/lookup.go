@@ -36,7 +36,8 @@ func Lookup(name, version string) (repo string, ref string, commit string, ok bo
 func ParseLookup(s string) (repo string, ref string, commit string, ok bool) {
 	// if the strings is prefixed with git:: it means the
 	// repository url was provided directly.
-	if strings.HasPrefix(s, "git:") || strings.HasPrefix(s, "github.com") {
+	if strings.HasPrefix(s, "git:") || strings.HasPrefix(s, "github.com") ||
+		strings.HasPrefix(s, "https://github.com") {
 		// trim the git:: prefix
 		repo = strings.TrimPrefix(s, "git::")
 
