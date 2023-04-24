@@ -23,5 +23,6 @@ type spec struct {
 			PackageName string `yaml:"package_name"`
 		}
 	}
+	Inputs  []map[string]interface{} `yaml:"inputs"`
 	Outputs []map[string]interface{} `yaml:"outputs"`
 }
