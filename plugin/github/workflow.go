@@ -153,7 +153,7 @@ import base64
 out = ""
 for k, v in os.environ.items():
 	if "(" not in k and ")" not in k:
-		out = out + "{}={}\n".format(k, str(base64.b64encode(bytes(v, "utf-8")), "utf-8"))
+		out = out + "{}={}\n".format(k, str(base64.urlsafe_b64encode(v), "utf-8"))
 with open(r"%s", "w") as text_file:
 	text_file.write(bytes(out, "utf-8"))
 `, envFile)
