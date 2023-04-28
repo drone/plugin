@@ -105,6 +105,7 @@ func diffEnv(before, after string) map[string]string {
 			log.Warn(fmt.Sprintf("failed to decode env value: %s", string(data)))
 		}
 	}
+	fmt.Println(diff)
 	return diff
 }
 
