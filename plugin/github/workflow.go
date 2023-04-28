@@ -154,8 +154,8 @@ out = ""
 for k, v in os.environ.items():
 	if "(" not in k and ")" not in k:
 		out = out + "{}={}\n".format(k, str(base64.b64encode(bytes(v, "utf-8")), "utf-8"))
-with open(r"%s", "wb") as text_file:
-	text_file.write(bytes(out, "UTF-8"))
+with open(r"%s", "w") as text_file:
+	text_file.write(bytes(out, "utf-8"))
 `, envFile)
 
 	file, err := ioutil.TempFile("", "")
