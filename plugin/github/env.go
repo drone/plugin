@@ -45,7 +45,6 @@ func getEnv(envVars map[string]string) map[string]string {
 // the environment variables to export.
 func exportEnv(before, after string) error {
 	diff := diffEnv(before, after)
-	fmt.Println(diff)
 	if len(diff) == 0 {
 		return nil
 	}
@@ -58,7 +57,6 @@ func exportEnv(before, after string) error {
 
 		exportFile = filepath.Join(home, ".drone_export.env")
 	}
-	fmt.Println(exportFile)
 	if err := godotenv.Write(diff, exportFile); err != nil {
 		return err
 	}
@@ -78,8 +76,6 @@ func diffEnv(before, after string) map[string]string {
 	if err != nil {
 		log.Warn(fmt.Sprintf("failed to read after env file: %s", err))
 	}
-	fmt.Println(beforeEnv)
-	fmt.Println(afterEnv)
 
 	diffB64 := make(map[string]string)
 	for k, v := range afterEnv {

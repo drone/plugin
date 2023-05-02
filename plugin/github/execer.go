@@ -7,7 +7,6 @@ package github
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -81,11 +80,6 @@ func (e *Execer) Exec(ctx context.Context) error {
 
 	if err := exportEnv(beforeStepEnvFile, afterStepEnvFile); err != nil {
 		return err
-	}
-	if data, err := os.ReadFile(os.Getenv("DRONE_ENV")); err != nil {
-		return err
-	} else {
-		fmt.Println(string(data))
 	}
 	return nil
 }
