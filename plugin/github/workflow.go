@@ -165,6 +165,8 @@ with open(r"%s", "wb") as text_file:
 	if err != nil {
 		return "", err
 	}
+	defer file.Close()
+
 	file.WriteString(script)
 	return file.Name(), nil
 }
