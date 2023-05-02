@@ -130,23 +130,16 @@ func getOutputVariables(prevStepId, outputFile string, outputVars []string) step
 
 	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
 		cmd = fmt.Sprintf("python3 -c \"%s\" > %s", cmd, outputFile)
+	} else if runtime.GOOS == "windows" {
+		cmd = fmt.Sprintf("python -c \"%s\"", outputVarWinScript(
+			outputVars, prevStepId, outputFile))
 	} else {
 		cmd = fmt.Sprintf("python -c \"%s\" > %s", cmd, outputFile)
 	}
-	fmt.Println("output var command")
-	fmt.Println(cmd)
-	fmt.Println("====")
-	fmt.Println(outputFile)
-	fmt.Println("====")
-
-	script := outputVarScript(outputVars, prevStepId, outputFile)
-	fmt.Println("output var script")
-	fmt.Println(script)
-	fmt.Println("====")
 
 	s := step{
 		Name: "output variables",
-		Run:  fmt.Sprintf("python -c \"%s\"", script),
+		Run:  cmd,
 		If:   fmt.Sprintf("%t", !skip),
 	}
 	if runtime.GOOS == "windows" {
@@ -176,29 +169,15 @@ with open(r"%s", "wb") as text_file:
 	return file.Name(), nil
 }
 
-func outputVarScript(outputVars []string, prevStepId, outputFile string) string {
-	cmd := "out = \"\"\n"
-	for _, outputVar := range outputVars {
-		cmd += fmt.Sprintf("out = out + \"%s=${{ steps.%s.outputs.%s }}\\n\"\n", outputVar, stepId, outputVar)
-	}
-
-	cmdp := ""
+func outputVarWinScript(outputVars []string, prevStepId, outputFile string) string {
+	script := ""
 	for idx, outputVar := range outputVars {
 		prefix := "out = "
 		if idx > 0 {
 			prefix += "out + "
 		}
-		cmdp += fmt.Sprintf("%s'%s=${{ steps.%s.outputs.%s }}\\n';", prefix, outputVar, stepId, outputVar)
+		script += fmt.Sprintf("%s'%s=${{ steps.%s.outputs.%s }}\\n';", prefix, outputVar, stepId, outputVar)
 	}
-	cmdp += fmt.Sprintf("f = open('%s', 'wb'); f.write(bytes(out, 'UTF-8')); f.close()", outputFile)
-	return cmdp
-	//	fmt.Println(outputFile)
-	//	return fmt.Sprintf(`
-	//
-	// %s
-	// with open(r"%s", "wb") as text_file:
-	//
-	//	text_file.write(bytes(out, "UTF-8"))
-	//
-	// `, cmd, outputFile)
+	script += fmt.Sprintf("f = open('%s', 'wb'); f.write(bytes(out, 'UTF-8')); f.close()", outputFile)
+	return script
 }

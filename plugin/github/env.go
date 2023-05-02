@@ -77,9 +77,6 @@ func diffEnv(before, after string) map[string]string {
 		log.Warn(fmt.Sprintf("failed to read after env file: %s", err))
 	}
 
-	fmt.Println(beforeEnv)
-	fmt.Println(afterEnv)
-
 	diffB64 := make(map[string]string)
 	for k, v := range afterEnv {
 		if strings.HasPrefix(k, "GITHUB_") {
@@ -105,9 +102,6 @@ func diffEnv(before, after string) map[string]string {
 			log.Warn(fmt.Sprintf("failed to decode env value: %s", string(data)))
 		}
 	}
-	fmt.Println("diff env")
-	fmt.Println(diff)
-	fmt.Println("====")
 	return diff
 }
 
