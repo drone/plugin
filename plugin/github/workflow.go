@@ -145,14 +145,13 @@ func getOutputVariables(prevStepId, outputFile string, outputVars []string) step
 	fmt.Println("====")
 
 	s := step{
-		Name:  "output variables",
-		Run:   script,
-		If:    fmt.Sprintf("%t", !skip),
-		Shell: "python",
+		Name: "output variables",
+		Run:  fmt.Sprintf("python -c \"%s\"", script),
+		If:   fmt.Sprintf("%t", !skip),
 	}
-	// if runtime.GOOS == "windows" {
-	// 	s.Shell = "powershell"
-	// }
+	if runtime.GOOS == "windows" {
+		s.Shell = "powershell"
+	}
 	return s
 }
 
@@ -183,10 +182,23 @@ func outputVarScript(outputVars []string, prevStepId, outputFile string) string 
 		cmd += fmt.Sprintf("out = out + \"%s=${{ steps.%s.outputs.%s }}\\n\"\n", outputVar, stepId, outputVar)
 	}
 
-	fmt.Println(outputFile)
-	return fmt.Sprintf(`
-%s
-with open(r"%s", "wb") as text_file:
-	text_file.write(bytes(out, "UTF-8"))
-`, cmd, outputFile)
+	cmdp := ""
+	for idx, outputVar := range outputVars {
+		prefix := "out = "
+		if idx > 0 {
+			prefix += "out + "
+		}
+		cmdp += fmt.Sprintf("%s'%s=${{ steps.%s.outputs.%s }}\\n';", prefix, outputVar, stepId, outputVar)
+	}
+	cmdp += fmt.Sprintf("f = open('%s', 'wb'); f.write(bytes(out, 'UTF-8')); f.close()", outputFile)
+	return cmdp
+	//	fmt.Println(outputFile)
+	//	return fmt.Sprintf(`
+	//
+	// %s
+	// with open(r"%s", "wb") as text_file:
+	//
+	//	text_file.write(bytes(out, "UTF-8"))
+	//
+	// `, cmd, outputFile)
 }
