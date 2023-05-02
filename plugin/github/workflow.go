@@ -148,7 +148,7 @@ func getOutputVariables(prevStepId, outputFile string, outputVars []string) step
 		Name:  "output variables",
 		Run:   script,
 		If:    fmt.Sprintf("%t", !skip),
-		Shell: "python",
+		Shell: "python3",
 	}
 	// if runtime.GOOS == "windows" {
 	// 	s.Shell = "powershell"
