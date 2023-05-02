@@ -58,6 +58,7 @@ func exportEnv(before, after string) error {
 
 		exportFile = filepath.Join(home, ".drone_export.env")
 	}
+	fmt.Println(exportFile)
 	if err := godotenv.Write(diff, exportFile); err != nil {
 		return err
 	}
