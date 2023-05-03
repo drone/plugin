@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/drone/plugin/plugin/internal/encoder"
@@ -92,10 +93,15 @@ func diffEnv(before, after string) map[string]string {
 		}
 	}
 
+	encoding := base64.StdEncoding
+	if runtime.GOOS == "windows" {
+		encoding = base64.RawURLEncoding
+	}
+
 	// Base64 decode env values
 	diff := make(map[string]string)
 	for k, v := range diffB64 {
-		data, err := base64.RawURLEncoding.DecodeString(v)
+		data, err := encoding.DecodeString(v)
 		if err == nil {
 			diff[k] = string(data)
 		} else {
