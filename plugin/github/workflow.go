@@ -97,19 +97,18 @@ func getWorkflowEvent() string {
 }
 
 func prePostStep(name, envFile string) step {
-	log := slog.Default()
-
-	script, err := dotenvScript(envFile)
-	if err != nil {
-		log.Warn(fmt.Sprintf("failed to create pre/post-step script: %s", err))
-		script = "--version"
-	}
-
 	var cmd string
 	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
-		cmd = fmt.Sprintf("python3 %s", script)
-	} else {
+		cmd = fmt.Sprintf("python3 -c 'import os; import base64; [print(k+\"=\"+str(base64.b64encode(bytes(v, \"utf-8\")), \"utf-8\")) for k, v in os.environ.items()]' > %s", envFile)
+	} else if runtime.GOOS == "windows" {
+		script, err := dotenvScript(envFile)
+		if err != nil {
+			slog.Default().Warn(fmt.Sprintf("failed to create pre/post-step script: %s", err))
+			script = "--version"
+		}
 		cmd = fmt.Sprintf("python %s", script)
+	} else {
+		cmd = fmt.Sprintf("python -c 'import os; import base64; [print(k+\"=\"+str(base64.b64encode(bytes(v, \"utf-8\")), \"utf-8\")) for k, v in os.environ.items()]' > %s", envFile)
 	}
 	s := step{
 		Name: name,
