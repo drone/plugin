@@ -9,6 +9,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/go-git/go-git/v5"
@@ -68,7 +69,8 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 	}
 	// clone the repository
 	r, err := git.PlainClone(params.Dir, false, opts)
-	if errors.Is(plumbing.ErrReferenceNotFound, err) && !strings.HasPrefix(params.Ref, "refs/") {
+	if (errors.Is(plumbing.ErrReferenceNotFound, err) || matchRefNotFoundErr(err)) &&
+		!strings.HasPrefix(params.Ref, "refs/") {
 		// If params.Ref is provided without refs/*, then we are assuming it to either refs/heads/ or refs/tags.
 		// Try clone again with inverse ref.
 		if opts.ReferenceName.IsBranch() {
@@ -99,4 +101,10 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 	return w.Checkout(&git.CheckoutOptions{
 		Hash: plumbing.NewHash(params.Sha),
 	})
+}
+
+func matchRefNotFoundErr(err error) bool {
+	pattern := `couldn't find remote ref.*`
+	regex := regexp.MustCompile(pattern)
+	return regex.MatchString(err.Error())
 }
