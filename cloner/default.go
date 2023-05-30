@@ -104,6 +104,9 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 }
 
 func matchRefNotFoundErr(err error) bool {
+	if err == nil {
+		return false
+	}
 	pattern := `couldn't find remote ref.*`
 	regex := regexp.MustCompile(pattern)
 	return regex.MatchString(err.Error())
