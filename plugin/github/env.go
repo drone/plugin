@@ -14,10 +14,87 @@ import (
 	"strings"
 
 	"github.com/drone/plugin/plugin/internal/encoder"
+	"github.com/drone/plugin/plugin/internal/environ"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"
 )
+
+// Environ function converts harness or drone environment
+// variables to github action environment variables.
+func Environ(src []string, repo string) []string {
+	// make a copy of the environment variables
+	dst := environ.Map(src)
+
+	// convert drone environment variables to github action
+	// environment variables
+	for key, val := range dst {
+		// drone prefixes plugin input parameters, github action
+		// does not. trim the prefix and convert to lowercase
+		// for github action compatibility.
+		if strings.HasPrefix(key, "PLUGIN_") {
+			key = strings.TrimPrefix("PLUGIN_", "")
+			key = strings.ToLower(key)
+			dst[key] = val
+		}
+	}
+
+	tagName := dst["DRONE_TAG"]
+	branchName := dst["DRONE_BRANCH"]
+
+	arch := "X64"
+	if runtime.GOARCH == "arm64" {
+		arch = "arm64"
+	}
+
+	ostype := "Linux"
+	if runtime.GOOS == "darwin" {
+		ostype = "macOS"
+	} else if runtime.GOOS == "windows" {
+		ostype = "Windows"
+	}
+
+	// github actions may depend on github action environment variables.
+	// map drone environment variables, which are already present
+	// in the execution envionment, to their github action equivalents.
+	//
+	// github action environment variable docs:
+	// https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
+	dst = environ.Combine(dst, map[string]string{
+		"CI":                       "true",
+		"GITHUB_ACTION_REPOSITORY": repo,
+		"GITHUB_ACTIONS":           "true",
+		"GITHUB_API_URL":           "https://api.github.com",
+		"GITHUB_BASE_REF":          dst["DRONE_TARGET_BRANCH"],
+		"GITHUB_HEAD_REF":          dst["DRONE_SOURCE_BRANCH"],
+		"GITHUB_REF":               dst["DRONE_COMMIT_REF"],
+		"GITHUB_REPOSITORY":        dst["DRONE_REPO"],
+		"GITHUB_REPOSITORY_OWNER":  parseOwner(dst["DRONE_REPO"]),
+		"GITHUB_SERVER_URL":        "https://github.com",
+		"GITHUB_SHA":               dst["DRONE_COMMIT_SHA"],
+		"GITHUB_WORKFLOW":          "drone-github-action",
+		"RUNNER_ARCH":              arch,
+		"RUNNER_OS":                ostype,
+	})
+
+	if tagName != "" {
+		dst["GITHUB_REF_NAME"] = tagName
+		dst["GITHUB_REF_TYPE"] = "tag"
+	} else if branchName != "" {
+		dst["GITHUB_REF_NAME"] = branchName
+		dst["GITHUB_REF_TYPE"] = "branch"
+	}
+
+	return environ.Slice(dst)
+}
+
+// helper function gets the owner from a repository slug.
+func parseOwner(s string) (owner string) {
+	if parts := strings.Split(s, "/"); len(parts) == 2 {
+		return parts[0]
+	}
+	return
+}
 
 func getWith(envVars map[string]string) (map[string]string, error) {
 	if val, ok := envVars["PLUGIN_WITH"]; ok {
