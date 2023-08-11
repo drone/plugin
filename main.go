@@ -139,7 +139,7 @@ func main() {
 			Source:     codedir,
 			Stdout:     os.Stdout,
 			Stderr:     os.Stderr,
-			Environ:    os.Environ(),
+			Environ:    github.Environ(os.Environ()),
 			OutputFile: outputFile,
 		}
 		if err := execer.Exec(ctx); err != nil {
