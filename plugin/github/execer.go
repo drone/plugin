@@ -36,6 +36,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	}
 
 	envVars := environ.Map(e.Environ)
+	envVars["RUNNER_TEMP"] = tmpDir
 	outputVars := getOutputVars(e.Source, e.Name)
 
 	workflowFile := filepath.Join(tmpDir, "workflow.yml")

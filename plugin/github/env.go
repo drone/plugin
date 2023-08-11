@@ -22,7 +22,7 @@ import (
 
 // Environ function converts harness or drone environment
 // variables to github action environment variables.
-func Environ(src []string, repo string) []string {
+func Environ(src []string) []string {
 	// make a copy of the environment variables
 	dst := environ.Map(src)
 
@@ -42,6 +42,8 @@ func Environ(src []string, repo string) []string {
 	tagName := dst["DRONE_TAG"]
 	branchName := dst["DRONE_BRANCH"]
 
+	runner_tool_cache := "/opt/hostedtoolcache"
+
 	arch := "X64"
 	if runtime.GOARCH == "arm64" {
 		arch = "arm64"
@@ -52,6 +54,7 @@ func Environ(src []string, repo string) []string {
 		ostype = "macOS"
 	} else if runtime.GOOS == "windows" {
 		ostype = "Windows"
+		runner_tool_cache = "C:\\hostedtoolcache\\windows"
 	}
 
 	// github actions may depend on github action environment variables.
@@ -61,20 +64,19 @@ func Environ(src []string, repo string) []string {
 	// github action environment variable docs:
 	// https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
 	dst = environ.Combine(dst, map[string]string{
-		"CI":                       "true",
-		"GITHUB_ACTION_REPOSITORY": repo,
-		"GITHUB_ACTIONS":           "true",
-		"GITHUB_API_URL":           "https://api.github.com",
-		"GITHUB_BASE_REF":          dst["DRONE_TARGET_BRANCH"],
-		"GITHUB_HEAD_REF":          dst["DRONE_SOURCE_BRANCH"],
-		"GITHUB_REF":               dst["DRONE_COMMIT_REF"],
-		"GITHUB_REPOSITORY":        dst["DRONE_REPO"],
-		"GITHUB_REPOSITORY_OWNER":  parseOwner(dst["DRONE_REPO"]),
-		"GITHUB_SERVER_URL":        "https://github.com",
-		"GITHUB_SHA":               dst["DRONE_COMMIT_SHA"],
-		"GITHUB_WORKFLOW":          "drone-github-action",
-		"RUNNER_ARCH":              arch,
-		"RUNNER_OS":                ostype,
+		"GITHUB_BASE_REF":         dst["DRONE_TARGET_BRANCH"],
+		"GITHUB_HEAD_REF":         dst["DRONE_SOURCE_BRANCH"],
+		"GITHUB_REF":              dst["DRONE_COMMIT_REF"],
+		"GITHUB_REPOSITORY":       dst["DRONE_REPO"],
+		"GITHUB_REPOSITORY_OWNER": parseOwner(dst["DRONE_REPO"]),
+		"SHA_REF":                 dst["DRONE_COMMIT_SHA"],
+		"GITHUB_RUN_ATTEMPT":      dst["DRONE_BUILD_NUMBER"],
+		"GITHUB_RUN_NUMBER":       dst["DRONE_BUILD_NUMBER"],
+		"GITHUB_WORKSPACE":        firstMatch(dst, "DRONE_WORKSPACE", "HARNESS_WORKSPACE"),
+		"RUNNER_ARCH":             arch,
+		"RUNNER_OS":               ostype,
+		"RUNNER_NAME":             "HARNESS HOSTED",
+		"RUNNER_TOOL_CACHE":       runner_tool_cache,
 	})
 
 	if tagName != "" {
@@ -205,4 +207,15 @@ func strToMap(s string) (map[string]string, error) {
 		}
 	}
 	return m, nil
+}
+
+// helper function find the first matching environment
+// variable in the map.
+func firstMatch(envs map[string]string, keys ...string) (val string) {
+	for _, key := range keys {
+		if env, ok := envs[key]; ok {
+			return env
+		}
+	}
+	return
 }
