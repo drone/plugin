@@ -42,15 +42,18 @@ func Environ(src []string) []string {
 	tagName := dst["DRONE_TAG"]
 	branchName := dst["DRONE_BRANCH"]
 
-	runner_tool_cache := "/opt/hostedtoolcache"
+	runner_tool_cache := ""
 
 	arch := "X64"
 	if runtime.GOARCH == "arm64" {
 		arch = "arm64"
 	}
 
-	ostype := "Linux"
-	if runtime.GOOS == "darwin" {
+	ostype := ""
+	if runtime.GOOS == "linux" {
+		ostype = "Linux"
+		runner_tool_cache = "/opt/hostedtoolcache"
+	} else if runtime.GOOS == "darwin" {
 		ostype = "macOS"
 	} else if runtime.GOOS == "windows" {
 		ostype = "Windows"
