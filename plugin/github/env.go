@@ -79,8 +79,11 @@ func Environ(src []string) []string {
 		"RUNNER_ARCH":             arch,
 		"RUNNER_OS":               ostype,
 		"RUNNER_NAME":             "HARNESS HOSTED",
-		"RUNNER_TOOL_CACHE":       runner_tool_cache,
 	})
+
+	if runner_tool_cache != "" {
+		dst["RUNNER_TOOL_CACHE"] = runner_tool_cache
+	}
 
 	if tagName != "" {
 		dst["GITHUB_REF_NAME"] = tagName
