@@ -42,19 +42,17 @@ func Environ(src []string) []string {
 	tagName := dst["DRONE_TAG"]
 	branchName := dst["DRONE_BRANCH"]
 
-	runner_tool_cache := ""
-
 	arch := "X64"
 	if runtime.GOARCH == "arm64" {
 		arch = "arm64"
 	}
 
-	ostype := ""
-	if runtime.GOOS == "linux" {
-		ostype = "Linux"
-		runner_tool_cache = "/opt/hostedtoolcache"
-	} else if runtime.GOOS == "darwin" {
+	ostype := "Linux"
+	runner_tool_cache := "/opt/hostedtoolcache"
+
+	if runtime.GOOS == "darwin" {
 		ostype = "macOS"
+		runner_tool_cache = "/Users/anka/hostedtoolcache"
 	} else if runtime.GOOS == "windows" {
 		ostype = "Windows"
 		runner_tool_cache = "C:\\hostedtoolcache\\windows"
@@ -79,11 +77,8 @@ func Environ(src []string) []string {
 		"RUNNER_ARCH":             arch,
 		"RUNNER_OS":               ostype,
 		"RUNNER_NAME":             "HARNESS HOSTED",
+		"RUNNER_TOOL_CACHE":       runner_tool_cache,
 	})
-
-	if runner_tool_cache != "" {
-		dst["RUNNER_TOOL_CACHE"] = runner_tool_cache
-	}
 
 	if tagName != "" {
 		dst["GITHUB_REF_NAME"] = tagName
