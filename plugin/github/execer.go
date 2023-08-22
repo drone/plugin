@@ -77,6 +77,11 @@ func (e *Execer) Exec(ctx context.Context) error {
 		}
 	}
 
+	// append envs
+	for k, v := range envVars {
+		os.Args = append(os.Args, "--env", k+"="+v)
+	}
+
 	cmd.Execute(ctx, "1.1")
 
 	if err := exportEnv(beforeStepEnvFile, afterStepEnvFile); err != nil {
