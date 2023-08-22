@@ -64,7 +64,7 @@ func Environ(src []string) []string {
 	//
 	// github action environment variable docs:
 	// https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
-	dst = environ.Combine(dst, map[string]string{
+	dst = environ.Combine(map[string]string{
 		"GITHUB_BASE_REF":         dst["DRONE_TARGET_BRANCH"],
 		"GITHUB_HEAD_REF":         dst["DRONE_SOURCE_BRANCH"],
 		"GITHUB_REF":              dst["DRONE_COMMIT_REF"],
@@ -78,7 +78,7 @@ func Environ(src []string) []string {
 		"RUNNER_OS":               ostype,
 		"RUNNER_NAME":             "HARNESS HOSTED",
 		"RUNNER_TOOL_CACHE":       runner_tool_cache,
-	})
+	}, dst)
 
 	if tagName != "" {
 		dst["GITHUB_REF_NAME"] = tagName
