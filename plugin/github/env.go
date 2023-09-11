@@ -100,15 +100,30 @@ func parseOwner(s string) (owner string) {
 }
 
 func getWith(envVars map[string]string) (map[string]string, error) {
-	if val, ok := envVars["PLUGIN_WITH"]; ok {
+	PLUGIN_WITH := "PLUGIN_WITH"
+	PLUGIN_WITH_PREFIX := "PLUGIN_WITH_"
+
+	_, exists := envVars[PLUGIN_WITH]
+
+	// TODO: Remove this once corresponding CI Manager changes are released on prod envs
+	if exists {
+		// PLUGIN_WITH is being set in older flow
+		val := envVars[PLUGIN_WITH]
 		with, err := strToMap(val)
 		if err != nil {
 			return nil, errors.Wrap(err, "with attribute is not of map type with key & value as string")
 		}
-
 		return with, nil
+	} else {
+		m := make(map[string]string)
+		for key := range envVars {
+			if strings.HasPrefix(key, PLUGIN_WITH_PREFIX) {
+				k := strings.TrimPrefix(key, PLUGIN_WITH_PREFIX)
+				m[k] = envVars[key]
+			}
+		}
+		return m, nil
 	}
-	return nil, nil
 }
 
 func getEnv(envVars map[string]string) map[string]string {
