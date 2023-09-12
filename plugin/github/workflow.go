@@ -99,7 +99,7 @@ func getWorkflowEvent() string {
 func prePostStep(name, envFile string) step {
 	var cmd string
 	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
-		cmd = fmt.Sprintf("python3 -c 'import os; import base64; [print(k+\"=\"+str(base64.b64encode(bytes(v, \"utf-8\")), \"utf-8\")) for k, v in os.environ.items()]' > %s", envFile)
+		cmd = fmt.Sprintf("python3 -c 'import os; import base64; [print(k+\"=\"+str(base64.b64encode(bytes(v, \"utf-8\")), \"utf-8\")) for k, v in os.environ.items() if not k.startswith(\"PLUGIN_WITH_\")]' > %s", envFile)
 	} else if runtime.GOOS == "windows" {
 		script, err := dotenvScript(envFile)
 		if err != nil {
@@ -108,7 +108,7 @@ func prePostStep(name, envFile string) step {
 		}
 		cmd = fmt.Sprintf("python %s", script)
 	} else {
-		cmd = fmt.Sprintf("python -c 'import os; import base64; [print(k+\"=\"+str(base64.b64encode(bytes(v, \"utf-8\")), \"utf-8\")) for k, v in os.environ.items()]' > %s", envFile)
+		cmd = fmt.Sprintf("python -c 'import os; import base64; [print(k+\"=\"+str(base64.b64encode(bytes(v, \"utf-8\")), \"utf-8\")) for k, v in os.environ.items() if not k.startswith(\"PLUGIN_WITH_\")]' > %s", envFile)
 	}
 	s := step{
 		Name: name,
@@ -154,7 +154,7 @@ import base64
 
 out = ""
 for k, v in os.environ.items():
-	if "(" not in k and ")" not in k:
+	if "(" not in k and ")" not in k and not k.startswith("PLUGIN_WITH_"):
 		out = out + "{}={}\n".format(k, str(base64.urlsafe_b64encode(bytes(v, "utf-8")), "utf-8"))
 with open(r"%s", "wb") as text_file:
 	text_file.write(bytes(out, "UTF-8"))
