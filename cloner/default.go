@@ -13,14 +13,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 )
 
 const (
-	maxRetries    = 3
-	retryInterval = time.Second * 1
+	maxRetries      = 3
+	backoffInterval = time.Second * 1
 )
 
 // New returns a new cloner.
@@ -79,10 +80,17 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 		err error
 	)
 
-	for i := 0; i < maxRetries; i++ {
+	retryStrategy := backoff.NewExponentialBackOff()
+	retryStrategy.InitialInterval = backoffInterval
+	retryStrategy.MaxInterval = backoffInterval * 5     // Maximum delay
+	retryStrategy.MaxElapsedTime = backoffInterval * 60 // Maximum time to retry (1min)
+
+	b := backoff.WithMaxRetries(retryStrategy, uint64(maxRetries))
+
+	err = backoff.Retry(func() error {
 		r, err = git.PlainClone(params.Dir, false, opts)
 		if err == nil {
-			break
+			return nil
 		}
 		if (errors.Is(plumbing.ErrReferenceNotFound, err) || matchRefNotFoundErr(err)) &&
 			!strings.HasPrefix(params.Ref, "refs/") {
@@ -99,14 +107,13 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 
 			r, err = git.PlainClone(params.Dir, false, opts)
 			if err == nil {
-				break
+				return nil
 			}
 			// Change reference name back to original
 			opts.ReferenceName = originalRefName
 		}
-		// Sleep before retrying
-		time.Sleep(retryInterval)
-	}
+		return err
+	}, b)
 
 	// If error not nil, then return it
 	if err != nil {
