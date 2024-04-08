@@ -11,10 +11,17 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+)
+
+const (
+	maxRetries      = 3
+	backoffInterval = time.Second * 1
 )
 
 // New returns a new cloner.
@@ -68,24 +75,48 @@ func (c *cloner) Clone(ctx context.Context, params Params) error {
 		}
 	}
 	// clone the repository
-	r, err := git.PlainClone(params.Dir, false, opts)
-	if (errors.Is(plumbing.ErrReferenceNotFound, err) || matchRefNotFoundErr(err)) &&
-		!strings.HasPrefix(params.Ref, "refs/") {
-		// If params.Ref is provided without refs/*, then we are assuming it to either refs/heads/ or refs/tags.
-		// Try clone again with inverse ref.
-		if opts.ReferenceName.IsBranch() {
-			opts.ReferenceName = plumbing.ReferenceName("refs/tags/" + params.Ref)
-		} else if opts.ReferenceName.IsTag() {
-			opts.ReferenceName = plumbing.ReferenceName("refs/heads/" + params.Ref)
-		} else {
-			return err
-		}
+	var (
+		r   *git.Repository
+		err error
+	)
 
+	retryStrategy := backoff.NewExponentialBackOff()
+	retryStrategy.InitialInterval = backoffInterval
+	retryStrategy.MaxInterval = backoffInterval * 5     // Maximum delay
+	retryStrategy.MaxElapsedTime = backoffInterval * 60 // Maximum time to retry (1min)
+
+	b := backoff.WithMaxRetries(retryStrategy, uint64(maxRetries))
+
+	err = backoff.Retry(func() error {
 		r, err = git.PlainClone(params.Dir, false, opts)
-		if err != nil {
-			return err
+		if err == nil {
+			return nil
 		}
-	} else if err != nil {
+		if (errors.Is(plumbing.ErrReferenceNotFound, err) || matchRefNotFoundErr(err)) &&
+			!strings.HasPrefix(params.Ref, "refs/") {
+			originalRefName := opts.ReferenceName
+			// If params.Ref is provided without refs/*, then we are assuming it to either refs/heads/ or refs/tags.
+			// Try clone again with inverse ref.
+			if opts.ReferenceName.IsBranch() {
+				opts.ReferenceName = plumbing.ReferenceName("refs/tags/" + params.Ref)
+			} else if opts.ReferenceName.IsTag() {
+				opts.ReferenceName = plumbing.ReferenceName("refs/heads/" + params.Ref)
+			} else {
+				return err // Return err if the reference name is invalid
+			}
+
+			r, err = git.PlainClone(params.Dir, false, opts)
+			if err == nil {
+				return nil
+			}
+			// Change reference name back to original
+			opts.ReferenceName = originalRefName
+		}
+		return err
+	}, b)
+
+	// If error not nil, then return it
+	if err != nil {
 		return err
 	}
 

@@ -29,6 +29,7 @@ require (
 	github.com/acomagu/bufpipe v1.0.4 // indirect
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/andreaskoch/go-fswatch v1.0.0 // indirect
+	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cloudflare/circl v1.3.2 // indirect
 	github.com/containerd/containerd v1.7.0 // indirect
 	github.com/creack/pty v1.1.18 // indirect
