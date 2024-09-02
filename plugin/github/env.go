@@ -190,7 +190,7 @@ func diffEnv(before, after string) map[string]string {
 
 	encoding := base64.StdEncoding
 	if runtime.GOOS == "windows" {
-		encoding = base64.RawURLEncoding
+		encoding = base64.URLEncoding
 	}
 
 	// Base64 decode env values
