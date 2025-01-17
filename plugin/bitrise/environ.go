@@ -42,8 +42,8 @@ func Environ(src []string) []string {
 		"BITRISE_CERTIFICATE_PASSPHRASE": "",
 	}
 
-	for key, defaultValue := range bitriseDefaults {
-		dst[key] = firstMatch(dst, key, defaultValue)
+	for key := range bitriseDefaults {
+		dst[key] = firstMatch(dst, key)
 	}
 
 	// bitrise plugins may depend on bitrise environment variables.
