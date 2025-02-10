@@ -1,0 +1,93 @@
+pipeline:
+  name: drone-plugin-harness
+  identifier: dronepluginharness
+  projectIdentifier: Drone_Plugins
+  orgIdentifier: default
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: GitHub_Drone_Org
+        repoName: plugin
+        build: <+input>
+  stages:
+    - stage:
+        name: Build and Binaries Release
+        identifier: Build_and_Binaries_Release
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: version
+                  identifier: version
+                  spec:
+                    shell: Sh
+                    command: |-
+                      prefix="v"
+                      VERSION=${DRONE_TAG#"$prefix"}
+                    outputVariables:
+                      - name: VERSION
+                        type: String
+                        value: VERSION
+                  when:
+                    stageStatus: Success
+                    condition: <+codebase.build.type> == "tag"
+              - step:
+                  type: Run
+                  name: Test and Build
+                  identifier: Test_and_Build
+                  spec:
+                    connectorRef: Plugins_Docker_Hub_Connector
+                    image: golang:1.19
+                    shell: Sh
+                    command: |-
+                      go test ./...
+                      GOOS=linux   GOARCH=amd64   go build -ldflags "-s -w" -o release/plugin-linux-amd64
+                      GOOS=linux   GOARCH=arm64   go build -ldflags "-s -w" -o release/plugin-linux-arm64
+                      GOOS=darwin  GOARCH=amd64   go build -ldflags "-s -w" -o release/plugin-darwin-amd64
+                      GOOS=darwin  GOARCH=arm64   go build -ldflags "-s -w" -o release/plugin-darwin-arm64
+                      GOOS=windows GOARCH=amd64   go build -ldflags "-s -w" -o release/plugin-windows-amd64.exe
+              - step:
+                  type: Plugin
+                  name: Release amd64 Binaries
+                  identifier: Release_amd64_Binaries
+                  spec:
+                    connectorRef: Plugins_Docker_Hub_Connector
+                    image: plugins/github-release
+                    settings:
+                      api_key: <+secrets.getValue("ci_job_github_pat")>
+                      title: <+trigger.tag>
+                      files:
+                        - release/plugin-linux-amd64
+                        - release/plugin-linux-arm64
+                        - release/plugin-darwin-amd64
+                        - release/plugin-darwin-arm64
+                        - release/plugin-windows-amd64.exe
+                  when:
+                    stageStatus: Success
+                    condition: <+codebase.build.type> == "tag"
+              - step:
+                  name: Upload_Binaries_To_GCS
+                  identifier: Upload_Binaries_To_GCS
+                  template:
+                    templateRef: Upload_Binary_GCS_TI
+                    versionLabel: v1
+                    templateInputs:
+                      type: GCSUpload
+                      spec:
+                        sourcePath: /harness/release
+                        target: harness-plugin/<+pipeline.stages.Build_and_Binaries_Release.spec.execution.steps.version.output.outputVariables.VERSION>
+                      when:
+                        condition: <+codebase.build.type> == "tag"
