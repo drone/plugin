@@ -34,9 +34,7 @@ pipeline:
                   identifier: version
                   spec:
                     shell: Sh
-                    command: |-
-                      prefix="v"
-                      VERSION=${DRONE_TAG#"$prefix"}
+                    command: VERSION=${DRONE_TAG}
                     outputVariables:
                       - name: VERSION
                         type: String
