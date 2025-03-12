@@ -50,7 +50,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 	// execute the plugin. the execution logic differs
 	// based on programming language.
 	if source := out.Run.Binary.Source; source != "" {
-		return e.runSourceExecutable(ctx, out.Run.Binary.Source)
+		return e.runSourceExecutable(ctx, out.Run.Binary.Source, out.Run.Binary.FallbackSource)
 	} else if module := out.Run.Go.Module; module != "" {
 		return e.runGoExecutable(ctx, module)
 	} else {
@@ -58,14 +58,19 @@ func (e *Execer) Exec(ctx context.Context) error {
 	}
 }
 
-func (e *Execer) runSourceExecutable(ctx context.Context, source string) error {
-	parsedURL, err := NewMetadata(source, e.Ref).Generate()
+func (e *Execer) runSourceExecutable(ctx context.Context, source string, fallback string) error {
+	binpath, err := e.downloadBinary(source)
 	if err != nil {
-		return err
-	}
-	binpath, err := file.Download(parsedURL)
-	if err != nil {
-		return err
+		slog.Info("Primary source download failed. Retrying with fallback...")
+
+		if fallback != "" {
+			binpath, err = e.downloadBinary(fallback)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
 	}
 
 	if e.DownloadOnly {
@@ -79,6 +84,18 @@ func (e *Execer) runSourceExecutable(ctx context.Context, source string) error {
 	}
 	cmds = append(cmds, exec.Command(binpath))
 	return runCmds(ctx, cmds, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+}
+
+func (e *Execer) downloadBinary(source string) (string, error) {
+	parsedURL, err := NewMetadata(source, e.Ref).Generate()
+	if err != nil {
+		return "", err
+	}
+	binpath, err := file.Download(parsedURL)
+	if err != nil {
+		return "", err
+	}
+	return binpath, nil
 }
 
 func (e *Execer) runGoExecutable(ctx context.Context, module string) error {

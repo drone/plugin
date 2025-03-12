@@ -1,0 +1,4 @@
+run:
+  binary:
+    source: https://github.com/drone-plugins/plugin/releases/download/{{ release }}/plugin-{{ os }}-{{ arch }}.zst
+    fallback_source: https://mirror.example.com/plugin/releases/download/{{ release }}/plugin-{{ os }}-{{ arch }}.zst
