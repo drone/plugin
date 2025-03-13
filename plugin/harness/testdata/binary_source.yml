@@ -1,0 +1,3 @@
+run:
+  binary:
+    source: https://github.com/drone-plugins/plugin/releases/download/{{ release }}/plugin-{{ os }}-{{ arch }}.zst

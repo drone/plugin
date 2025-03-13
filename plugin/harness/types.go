@@ -4,7 +4,9 @@
 
 package harness
 
-import "errors"
+import (
+	"errors"
+)
 
 // spec defines the bitrise plugin.
 type (
@@ -41,7 +43,8 @@ type spec struct {
 			Module string
 		}
 		Binary struct {
-			Source string
+			Source         string
+			FallbackSource string `yaml:"fallback_source,omitempty"`
 		}
 	}
 }
