@@ -237,8 +237,12 @@ func (e *Execer) installChocoDeps(ctx context.Context, deps []string) {
 }
 
 func (e *Execer) installRunScripts(ctx context.Context, cmds []string) {
+	shell := "bash"
+	if _, err := exec.LookPath("bash"); err != nil {
+		shell = "sh"
+	}
 	for _, item := range cmds {
-		cmd := exec.Command(item)
+		cmd := exec.Command(shell, item)
 		if err := runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir,
 			e.Stdout, e.Stderr); err != nil {
 			slog.Error("run command failed", slog.String("command", item), "error", err)
