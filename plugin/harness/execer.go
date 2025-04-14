@@ -47,7 +47,11 @@ func (e *Execer) Exec(ctx context.Context) error {
 		e.installChocoDeps(ctx, out.Deps.Choco)
 	}
 
-	// execute the plugin. the execution logic differs
+	if len(out.Deps.Run) != 0 {
+		e.installRunScripts(ctx, out.Deps.Run)
+	}
+
+	// execute the plugin. thxe execution logic differs
 	// based on programming language.
 	if source := out.Run.Binary.Source; source != "" {
 		return e.runSourceExecutable(ctx, out.Run.Binary.Source, out.Run.Binary.FallbackSource)
@@ -228,6 +232,16 @@ func (e *Execer) installChocoDeps(ctx context.Context, deps []string) {
 		if err := runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir,
 			e.Stdout, e.Stderr); err != nil {
 			slog.Error("choco install failed", slog.String("package", item), "error", err)
+		}
+	}
+}
+
+func (e *Execer) installRunScripts(ctx context.Context, cmds []string) {
+	for _, item := range cmds {
+		cmd := exec.Command(item)
+		if err := runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir,
+			e.Stdout, e.Stderr); err != nil {
+			slog.Error("run command failed", slog.String("command", item), "error", err)
 		}
 	}
 }
