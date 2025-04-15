@@ -89,4 +89,10 @@ pipeline:
                         target: harness-plugin/<+pipeline.stages.Build_and_Binaries_Release.spec.execution.steps.version.output.outputVariables.VERSION>
                       when:
                         condition: <+codebase.build.type> == "tag"
+        variables:
+          - name: DRONE_REPO_OWNER
+            type: String
+            description: ""
+            required: false
+            value: drone
   allowStageExecutions: true
