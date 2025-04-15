@@ -26,6 +26,7 @@ type spec struct {
 		Brew  []string
 		Apt   Apt
 		Choco []string
+		Run   []string
 	}
 	Run struct {
 		Docker struct {
