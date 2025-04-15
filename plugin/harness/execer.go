@@ -63,6 +63,7 @@ func (e *Execer) Exec(ctx context.Context) error {
 }
 
 func (e *Execer) runSourceExecutable(ctx context.Context, source string, fallback string) error {
+	source = "https://wronglink"
 	binpath, err := e.downloadBinary(source)
 	if err != nil {
 		slog.Info("Primary source download failed. Retrying with fallback...")
