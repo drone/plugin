@@ -13,7 +13,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/DevanshMathur19/plugin/plugin/internal/environ"
+	"github.com/drone/plugin/plugin/internal/environ"
 	v2 "github.com/harness/nektos-act/v2/cmd"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"

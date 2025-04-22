@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/DevanshMathur19/plugin/cache"
+	"github.com/drone/plugin/cache"
 	"golang.org/x/exp/slog"
 )
 

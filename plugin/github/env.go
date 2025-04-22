@@ -13,8 +13,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/DevanshMathur19/plugin/plugin/internal/encoder"
-	"github.com/DevanshMathur19/plugin/plugin/internal/environ"
+	"github.com/drone/plugin/plugin/internal/encoder"
+	"github.com/drone/plugin/plugin/internal/environ"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"
