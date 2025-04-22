@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/drone/plugin/plugin/internal/environ"
+	"github.com/DevanshMathur19/plugin/plugin/internal/environ"
 	"golang.org/x/exp/slog"
 )
 

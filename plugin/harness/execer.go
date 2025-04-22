@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/drone/plugin/cache"
-	"github.com/drone/plugin/plugin/internal/file"
+	"github.com/DevanshMathur19/plugin/cache"
+	"github.com/DevanshMathur19/plugin/plugin/internal/file"
 	"golang.org/x/exp/slog"
 )
 

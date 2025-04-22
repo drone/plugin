@@ -11,10 +11,10 @@ import (
 
 	"golang.org/x/exp/slog"
 
-	"github.com/drone/plugin/cloner"
-	"github.com/drone/plugin/plugin/bitrise"
-	"github.com/drone/plugin/plugin/github"
-	"github.com/drone/plugin/plugin/harness"
+	"github.com/DevanshMathur19/plugin/cloner"
+	"github.com/DevanshMathur19/plugin/plugin/bitrise"
+	"github.com/DevanshMathur19/plugin/plugin/github"
+	"github.com/DevanshMathur19/plugin/plugin/harness"
 )
 
 var (

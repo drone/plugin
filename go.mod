@@ -1,4 +1,4 @@
-module github.com/drone/plugin
+module github.com/DevanshMathur19/plugin
 
 go 1.24
 
