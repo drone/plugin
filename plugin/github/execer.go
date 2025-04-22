@@ -7,13 +7,14 @@ package github
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/drone/plugin/plugin/internal/environ"
-	"github.com/nektos/act/cmd"
+	v2 "github.com/harness/nektos-act/v2/cmd"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"
 )
@@ -82,7 +83,8 @@ func (e *Execer) Exec(ctx context.Context) error {
 		os.Args = append(os.Args, "--env", k+"="+v)
 	}
 
-	cmd.Execute(ctx, "1.1")
+	fmt.Println("Using nektos-act v2 for execution")
+	v2.Execute(ctx, "1.1")
 
 	if err := exportEnv(beforeStepEnvFile, afterStepEnvFile); err != nil {
 		return err
