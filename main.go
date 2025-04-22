@@ -33,7 +33,7 @@ func main() {
 	if os.Getenv("DRONE_DEBUG") == "true" {
 		level = slog.LevelDebug
 	}
-	logger := slog.New(slog.HandlerOptions{Level: level}.NewTextHandler(os.Stdout))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level}))
 	slog.SetDefault(logger)
 
 	// parse the input parameters
