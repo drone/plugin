@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 
 	"github.com/DevanshMathur19/plugin/plugin/internal/environ"
-	v1 "github.com/harness/nektos-act/cmd"
 	v2 "github.com/harness/nektos-act/v2/cmd"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/slog"
@@ -84,15 +83,8 @@ func (e *Execer) Exec(ctx context.Context) error {
 		os.Args = append(os.Args, "--env", k+"="+v)
 	}
 
-	// Check if the USE_NEKTOS_ACT_NODE_20 environment variable is set to true
-	fmt.Println("Checking value of env var USE_NEKTOS_ACT_NODE_20", "value", os.Getenv("USE_NEKTOS_ACT_NODE_20"))
-	if os.Getenv("USE_NEKTOS_ACT_NODE_20") == "true" {
-		fmt.Println("Using nektos-act v2 for execution")
-		v2.Execute(ctx, "1.1")
-	} else {
-		fmt.Println("Using nektos-act v1 for execution")
-		v1.Execute(ctx, "1.1")
-	}
+	fmt.Println("Using nektos-act v2 for execution")
+	v2.Execute(ctx, "1.1")
 
 	if err := exportEnv(beforeStepEnvFile, afterStepEnvFile); err != nil {
 		return err
