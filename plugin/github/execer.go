@@ -7,6 +7,7 @@ package github
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -84,12 +85,12 @@ func (e *Execer) Exec(ctx context.Context) error {
 	}
 
 	// Check if the USE_NEKTOS_ACT_NODE_20 environment variable is set to true
-	slog.Info("Checking value of env var USE_NEKTOS_ACT_NODE_20", "value", os.Getenv("USE_NEKTOS_ACT_NODE_20"))
+	fmt.Println("Checking value of env var USE_NEKTOS_ACT_NODE_20", "value", os.Getenv("USE_NEKTOS_ACT_NODE_20"))
 	if os.Getenv("USE_NEKTOS_ACT_NODE_20") == "true" {
-		slog.Info("Using nektos-act v2 for execution")
+		fmt.Println("Using nektos-act v2 for execution")
 		v2.Execute(ctx, "1.1")
 	} else {
-		slog.Info("Using nektos-act v1 for execution")
+		fmt.Println("Using nektos-act v1 for execution")
 		v1.Execute(ctx, "1.1")
 	}
 
