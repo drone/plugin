@@ -26,8 +26,8 @@ type Execer struct {
 	Source        string // plugin source code directory
 	Workdir       string // pipeline working directory (aka workspace)
 	DownloadOnly  bool
-	binarySources utils.CustomStringSliceFlag
-	disableClone  bool
+	BinarySources utils.CustomStringSliceFlag
+	DisableClone  bool
 	Environ       []string
 	Stdout        io.Writer
 	Stderr        io.Writer
@@ -35,7 +35,7 @@ type Execer struct {
 
 // Exec executes a bitrise plugin.
 func (e *Execer) Exec(ctx context.Context) error {
-	if !e.disableClone {
+	if !e.DisableClone {
 		// parse the bitrise plugin yaml
 		out, err := parseFile(filepath.Join(e.Source, "plugin.yml"))
 		if err != nil {
@@ -65,8 +65,8 @@ func (e *Execer) Exec(ctx context.Context) error {
 		} else {
 			return e.runShellExecutable(ctx, out)
 		}
-	} else if len(e.binarySources.GetValue()) > 0 {
-		return e.runSourceExecutable(ctx, e.binarySources.GetValue())
+	} else if len(e.BinarySources.GetValue()) > 0 {
+		return e.runSourceExecutable(ctx, e.BinarySources.GetValue())
 	} else {
 		slog.Error("clone is disabled and binary sources are empty. Aborting")
 		return nil
@@ -286,8 +286,8 @@ func runCmds(ctx context.Context, cmds []*exec.Cmd, env []string, workdir string
 
 func (e *Execer) getBinarySources(source string, fallback string) []string {
 	var sources []string
-	if len(e.binarySources.GetValue()) > 0 {
-		sources = append(sources, e.binarySources.GetValue()...)
+	if len(e.BinarySources.GetValue()) > 0 {
+		sources = append(sources, e.BinarySources.GetValue()...)
 	}
 	if source != "" {
 		sources = append(sources, source)

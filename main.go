@@ -109,15 +109,19 @@ func main() {
 	case kind == "harness" || (kind == "" && harness.Is(codedir)):
 		if !disableClone {
 			slog.Info("detected harness plugin.yml")
+		} else {
+			slog.Info("clone is disabled for harness plugin")
 		}
 		execer := harness.Execer{
-			Source:       codedir,
-			Workdir:      workdir,
-			Ref:          ref,
-			Environ:      os.Environ(),
-			Stdout:       os.Stdout,
-			Stderr:       os.Stderr,
-			DownloadOnly: downloadOnly,
+			Source:        codedir,
+			Workdir:       workdir,
+			Ref:           ref,
+			Environ:       os.Environ(),
+			Stdout:        os.Stdout,
+			Stderr:        os.Stderr,
+			BinarySources: binarySources,
+			DisableClone:  disableClone,
+			DownloadOnly:  downloadOnly,
 		}
 		if err := execer.Exec(ctx); err != nil {
 			slog.Error("step failed", "error", err)
