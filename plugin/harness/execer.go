@@ -16,65 +16,67 @@ import (
 
 	"github.com/drone/plugin/cache"
 	"github.com/drone/plugin/plugin/internal/file"
+	"github.com/drone/plugin/utils"
 	"golang.org/x/exp/slog"
 )
 
 // Execer executes a harness plugin.
 type Execer struct {
-	Ref          string // Git ref for source code
-	Source       string // plugin source code directory
-	Workdir      string // pipeline working directory (aka workspace)
-	DownloadOnly bool
-	Environ      []string
-	Stdout       io.Writer
-	Stderr       io.Writer
+	Ref           string // Git ref for source code
+	Source        string // plugin source code directory
+	Workdir       string // pipeline working directory (aka workspace)
+	DownloadOnly  bool
+	binarySources utils.CustomStringSliceFlag
+	disableClone  bool
+	Environ       []string
+	Stdout        io.Writer
+	Stderr        io.Writer
 }
 
 // Exec executes a bitrise plugin.
 func (e *Execer) Exec(ctx context.Context) error {
-	// parse the bitrise plugin yaml
-	out, err := parseFile(filepath.Join(e.Source, "plugin.yml"))
-	if err != nil {
-		return err
-	}
+	if !e.disableClone {
+		// parse the bitrise plugin yaml
+		out, err := parseFile(filepath.Join(e.Source, "plugin.yml"))
+		if err != nil {
+			return err
+		}
 
-	// install dependencies
-	if runtime.GOOS == "linux" {
-		e.installAptDeps(ctx, out.Deps.Apt.Packages, out.Deps.Apt.Sources)
-	} else if runtime.GOOS == "darwin" {
-		e.installBrewDeps(ctx, out.Deps.Brew)
-	} else if runtime.GOOS == "windows" {
-		e.installChocoDeps(ctx, out.Deps.Choco)
-	}
+		// install dependencies
+		if runtime.GOOS == "linux" {
+			e.installAptDeps(ctx, out.Deps.Apt.Packages, out.Deps.Apt.Sources)
+		} else if runtime.GOOS == "darwin" {
+			e.installBrewDeps(ctx, out.Deps.Brew)
+		} else if runtime.GOOS == "windows" {
+			e.installChocoDeps(ctx, out.Deps.Choco)
+		}
 
-	if len(out.Deps.Run) != 0 {
-		e.installRunScripts(ctx, out.Deps.Run)
-	}
+		if len(out.Deps.Run) != 0 {
+			e.installRunScripts(ctx, out.Deps.Run)
+		}
 
-	// execute the plugin. thxe execution logic differs
-	// based on programming language.
-	if source := out.Run.Binary.Source; source != "" {
-		return e.runSourceExecutable(ctx, out.Run.Binary.Source, out.Run.Binary.FallbackSource)
-	} else if module := out.Run.Go.Module; module != "" {
-		return e.runGoExecutable(ctx, module)
+		// execute the plugin. thxe execution logic differs
+		// based on programming language.
+		sources := e.getBinarySources(out.Run.Binary.Source, out.Run.Binary.FallbackSource)
+		if len(sources) > 0 {
+			return e.runSourceExecutable(ctx, sources)
+		} else if module := out.Run.Go.Module; module != "" {
+			return e.runGoExecutable(ctx, module)
+		} else {
+			return e.runShellExecutable(ctx, out)
+		}
+	} else if len(e.binarySources.GetValue()) > 0 {
+		return e.runSourceExecutable(ctx, e.binarySources.GetValue())
 	} else {
-		return e.runShellExecutable(ctx, out)
+		slog.Error("clone is disabled and binary sources are empty. Aborting")
+		return nil
 	}
 }
 
-func (e *Execer) runSourceExecutable(ctx context.Context, source string, fallback string) error {
-	binpath, err := e.downloadBinary(source)
+func (e *Execer) runSourceExecutable(ctx context.Context, sources []string) error {
+	binpath, err := e.downloadBinaryFromSources(sources)
 	if err != nil {
-		slog.Info("Primary source download failed. Retrying with fallback...")
-
-		if fallback != "" {
-			binpath, err = e.downloadBinary(fallback)
-			if err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+		return err
 	}
 
 	if e.DownloadOnly {
@@ -88,6 +90,22 @@ func (e *Execer) runSourceExecutable(ctx context.Context, source string, fallbac
 	}
 	cmds = append(cmds, exec.Command(binpath))
 	return runCmds(ctx, cmds, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+}
+
+func (e *Execer) downloadBinaryFromSources(sources []string) (string, error) {
+	var err error
+	var binpath string
+	for _, source := range sources {
+		if source != "" {
+			binpath, err = e.downloadBinary(source)
+			if err == nil {
+				return binpath, nil
+			} else {
+				slog.Info("binary download failed moving on to next source")
+			}
+		}
+	}
+	return "", err
 }
 
 func (e *Execer) downloadBinary(source string) (string, error) {
@@ -264,6 +282,20 @@ func runCmds(ctx context.Context, cmds []*exec.Cmd, env []string, workdir string
 		}
 	}
 	return nil
+}
+
+func (e *Execer) getBinarySources(source string, fallback string) []string {
+	var sources []string
+	if len(e.binarySources.GetValue()) > 0 {
+		sources = append(sources, e.binarySources.GetValue()...)
+	}
+	if source != "" {
+		sources = append(sources, source)
+	}
+	if fallback != "" {
+		sources = append(sources, fallback)
+	}
+	return sources
 }
 
 // trace writes each command to stdout with the command wrapped in an xml

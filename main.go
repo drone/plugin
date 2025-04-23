@@ -15,15 +15,18 @@ import (
 	"github.com/drone/plugin/plugin/bitrise"
 	"github.com/drone/plugin/plugin/github"
 	"github.com/drone/plugin/plugin/harness"
+	"github.com/drone/plugin/utils"
 )
 
 var (
-	name         string // plugin name
-	repo         string // plugin repository
-	ref          string // plugin repository reference
-	sha          string // plugin repository commit
-	kind         string // plugin kind (action, bitrise, harness)
-	downloadOnly bool   // plugin won't be executed on setting this flag. Only source will be downloaded. Used for caching the plugin dependencies
+	name          string                      // plugin name
+	repo          string                      // plugin repository
+	ref           string                      // plugin repository reference
+	sha           string                      // plugin repository commit
+	kind          string                      // plugin kind (action, bitrise, harness)
+	downloadOnly  bool                        // plugin won't be executed on setting this flag. Only source will be downloaded. Used for caching the plugin dependencies
+	disableClone  bool                        // plugin does not clone when this flag is enabled
+	binarySources utils.CustomStringSliceFlag // plugin uses these binary source urls in the same order to download the binaires
 )
 
 func main() {
@@ -43,6 +46,7 @@ func main() {
 	flag.StringVar(&sha, "sha", "", "plugin commit")
 	flag.StringVar(&kind, "kind", "", "plugin kind")
 	flag.BoolVar(&downloadOnly, "download-only", false, "plugin downloadOnly")
+	flag.Var(&binarySources, "sources", "source urls to download binaries")
 	flag.Parse()
 
 	// the user may specific the action plugin alias instead
@@ -87,11 +91,15 @@ func main() {
 	}
 
 	// clone the plugin repository
-	clone := cloner.NewCache(cloner.NewDefault())
-	codedir, err := clone.Clone(ctx, repo, ref, sha)
-	if err != nil {
-		slog.Error("cannot clone the plugin", "error", err)
-		os.Exit(1)
+	var codedir string
+
+	if !disableClone {
+		clone := cloner.NewCache(cloner.NewDefault())
+		codedir, err = clone.Clone(ctx, repo, ref, sha)
+		if err != nil {
+			slog.Error("cannot clone the plugin", "error", err)
+			os.Exit(1)
+		}
 	}
 
 	outputFile := os.Getenv("DRONE_OUTPUT")
@@ -99,7 +107,10 @@ func main() {
 	switch {
 	// execute harness plugin
 	case kind == "harness" || (kind == "" && harness.Is(codedir)):
-		slog.Info("detected harness plugin.yml")
+
+		if !disableClone {
+			slog.Info("detected harness plugin.yml")
+		}
 		execer := harness.Execer{
 			Source:       codedir,
 			Workdir:      workdir,
