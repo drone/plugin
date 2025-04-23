@@ -92,7 +92,6 @@ func main() {
 
 	// clone the plugin repository
 	var codedir string
-
 	if !disableClone {
 		clone := cloner.NewCache(cloner.NewDefault())
 		codedir, err = clone.Clone(ctx, repo, ref, sha)
@@ -107,7 +106,6 @@ func main() {
 	switch {
 	// execute harness plugin
 	case kind == "harness" || (kind == "" && harness.Is(codedir)):
-
 		if !disableClone {
 			slog.Info("detected harness plugin.yml")
 		}
