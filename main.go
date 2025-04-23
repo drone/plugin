@@ -46,6 +46,7 @@ func main() {
 	flag.StringVar(&sha, "sha", "", "plugin commit")
 	flag.StringVar(&kind, "kind", "", "plugin kind")
 	flag.BoolVar(&downloadOnly, "download-only", false, "plugin downloadOnly")
+	flag.BoolVar(&disableClone, "disable-clone", false, "disable clone functionality")
 	flag.Var(&binarySources, "sources", "source urls to download binaries")
 	flag.Parse()
 
