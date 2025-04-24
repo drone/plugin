@@ -285,7 +285,7 @@ func runCmds(ctx context.Context, cmds []*exec.Cmd, env []string, workdir string
 }
 
 func (e *Execer) getBinarySources(source string, fallback string) []string {
-	var sources []string
+	sources := []string{}
 	if len(e.BinarySources.GetValue()) > 0 {
 		sources = append(sources, e.BinarySources.GetValue()...)
 	}
