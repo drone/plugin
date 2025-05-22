@@ -22,6 +22,7 @@ var (
 	name          string                      // plugin name
 	repo          string                      // plugin repository
 	ref           string                      // plugin repository reference
+	args          string                      // plugin arguments
 	sha           string                      // plugin repository commit
 	kind          string                      // plugin kind (action, bitrise, harness)
 	downloadOnly  bool                        // plugin won't be executed on setting this flag. Only source will be downloaded. Used for caching the plugin dependencies
@@ -43,6 +44,7 @@ func main() {
 	flag.StringVar(&name, "name", "", "plugin name")
 	flag.StringVar(&repo, "repo", "", "plugin repository")
 	flag.StringVar(&ref, "ref", "", "plugin reference")
+	flag.StringVar(&args, "args", "", "plugin arguments")
 	flag.StringVar(&sha, "sha", "", "plugin commit")
 	flag.StringVar(&kind, "kind", "", "plugin kind")
 	flag.BoolVar(&downloadOnly, "download-only", false, "plugin downloadOnly")
@@ -122,6 +124,7 @@ func main() {
 			BinarySources: binarySources,
 			DisableClone:  disableClone,
 			DownloadOnly:  downloadOnly,
+			Args:          args,
 		}
 		if err := execer.Exec(ctx); err != nil {
 			slog.Error("step failed", "error", err)
