@@ -26,6 +26,7 @@ type Execer struct {
 	Source        string // plugin source code directory
 	Workdir       string // pipeline working directory (aka workspace)
 	DownloadOnly  bool
+	Args          string
 	BinarySources utils.CustomStringSliceFlag
 	DisableClone  bool
 	Environ       []string
@@ -88,7 +89,12 @@ func (e *Execer) runSourceExecutable(ctx context.Context, sources []string) erro
 	if runtime.GOOS != "windows" {
 		cmds = append(cmds, exec.Command("chmod", "+x", binpath))
 	}
-	cmds = append(cmds, exec.Command(binpath))
+	if e.Args != "" {
+		slog.Info("Executing binary with arguments", slog.String("binary", binpath), slog.String("args", e.Args))
+		cmds = append(cmds, exec.Command(binpath, e.Args))
+	} else {
+		cmds = append(cmds, exec.Command(binpath))
+	}
 	return runCmds(ctx, cmds, e.Environ, e.Workdir, e.Stdout, e.Stderr)
 }
 
