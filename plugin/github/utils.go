@@ -31,13 +31,26 @@ func getOutputVars(codedir, name string) []string {
 }
 
 func getSecretFile(envVars map[string]string, tmpDir string) (string, error) {
+	secrets := make(map[string]string)
+
 	v, ok := envVars["GITHUB_TOKEN"]
-	if !ok {
-		return "", nil
+	if ok {
+		secrets["GITHUB_TOKEN"] = v
 	}
 
-	secrets := make(map[string]string)
-	secrets["GITHUB_TOKEN"] = v
+	v, ok = envVars["DOCKER_USERNAME"]
+	if ok {
+		secrets["DOCKER_USERNAME"] = v
+	}
+
+	v, ok = envVars["DOCKER_PASSWORD"]
+	if ok {
+		secrets["DOCKER_PASSWORD"] = v
+	}
+
+	if len(secrets) == 0 {
+		return "", nil
+	}
 
 	secretFile := filepath.Join(tmpDir, "wf.secrets")
 	if err := godotenv.Write(secrets, secretFile); err != nil {
