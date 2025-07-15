@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 
 	"golang.org/x/exp/slog"
@@ -30,6 +31,10 @@ var (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] != "" && os.Args[1] == "healthz" {
+		fmt.Println("OK")
+		return
+	}
 	ctx := context.Background()
 
 	level := slog.LevelInfo
