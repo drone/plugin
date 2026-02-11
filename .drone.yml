@@ -4,7 +4,7 @@ name: default
 
 steps:
 - name: build
-  image: golang:1.19
+  image: golang:1.24
   commands:
   - go test ./...
   - GOOS=linux   GOARCH=amd64   go build -ldflags "-s -w" -o release/plugin-linux-amd64
