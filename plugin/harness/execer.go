@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -150,12 +149,12 @@ func (e *Execer) runShellExecutable(ctx context.Context, out *spec) error {
 		// TODO we may want to disable profile and interactive mode
 		// when executing powershell scripts -noprofile -noninteractive
 		path := filepath.Join(e.Source, out.Run.Pwsh.Path)
-		os.Setenv("CLONE_CACHE_PATH", e.Source)
 		slog.Debug("execute", slog.String("file", path))
 		script := fmt.Sprintf(
 			"$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue'; %s", path)
 		cmd := exec.Command("pwsh", "-Command", script)
-		return runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+		envWithClonePath := append(e.Environ, fmt.Sprintf("CLONE_CACHE_PATH=%s", e.Source))
+		return runCmds(ctx, []*exec.Cmd{cmd}, envWithClonePath, e.Workdir, e.Stdout, e.Stderr)
 	case "linux", "darwin":
 		path := filepath.Join(e.Source, out.Run.Bash.Path)
 
@@ -166,10 +165,10 @@ func (e *Execer) runShellExecutable(ctx context.Context, out *spec) error {
 			shell = "sh"
 		}
 		slog.Debug("execute", slog.String("file", path))
-		os.Setenv("CLONE_CACHE_PATH", e.Source)
 
 		cmd := exec.Command(shell, path)
-		return runCmds(ctx, []*exec.Cmd{cmd}, e.Environ, e.Workdir, e.Stdout, e.Stderr)
+		envWithClonePath := append(e.Environ, fmt.Sprintf("CLONE_CACHE_PATH=%s", e.Source))
+		return runCmds(ctx, []*exec.Cmd{cmd}, envWithClonePath, e.Workdir, e.Stdout, e.Stderr)
 	default:
 		return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
 	}
