@@ -17,6 +17,7 @@ import (
 	"github.com/drone/plugin/plugin/github"
 	"github.com/drone/plugin/plugin/harness"
 	"github.com/drone/plugin/utils"
+	"github.com/drone/plugin/version"
 )
 
 var (
@@ -28,12 +29,20 @@ var (
 	downloadOnly  bool                        // plugin won't be executed on setting this flag. Only source will be downloaded. Used for caching the plugin dependencies
 	disableClone  bool                        // plugin does not clone when this flag is enabled
 	binarySources utils.CustomStringSliceFlag // plugin uses these binary source urls in the same order to download the binaires
+	showVersion   bool                        // show version and exit
 )
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] != "" && os.Args[1] == "healthz" {
-		fmt.Println("OK")
-		return
+	// Handle special commands before flag parsing
+	if len(os.Args) > 1 && os.Args[1] != "" {
+		if os.Args[1] == "healthz" {
+			fmt.Println("OK")
+			return
+		}
+		if os.Args[1] == "-v" || os.Args[1] == "--version" {
+			fmt.Println(version.GetVersion())
+			return
+		}
 	}
 	ctx := context.Background()
 

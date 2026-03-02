@@ -1,0 +1,2 @@
+DOCKER_FILE_PATH: /harness/plugin/docker/Dockerfile-plugin
+CONTEXT_PATH: /harness/plugin
