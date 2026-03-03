@@ -1,2 +1,3 @@
 DOCKER_FILE_PATH: /harness/plugin/docker/Dockerfile-plugin
 CONTEXT_PATH: /harness/plugin
+HELM_CHART_SOURCE_DIRECTORY: /harness/plugin/chart

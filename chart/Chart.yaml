@@ -1,0 +1,7 @@
+apiVersion: v2
+name: harness-vm-runner-plugin
+description: Harness VM Runner Plugin Binary
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+dependencies: []
