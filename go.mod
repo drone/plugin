@@ -40,6 +40,11 @@ require (
 	github.com/cyphar/filepath-securejoin v0.5.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
+	// NOTE: CVE-2025-15558 (CVSS 8.0) affects docker/cli v28.0.4, fixed in v29.2.0
+	// Cannot upgrade: github.com/harness/nektos-act/v2 v2.0.0 incompatible with docker/cli v29.x API changes
+	// Upstream nektos/act v0.2.84 still uses docker/cli v28.4.0
+	// CVE is Windows-specific; impact limited for Linux-only builds
+	// Tracking: Upgrade when harness/nektos-act supports docker/cli v29+
 	github.com/docker/cli v28.0.4+incompatible // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/docker v28.0.4+incompatible // indirect
