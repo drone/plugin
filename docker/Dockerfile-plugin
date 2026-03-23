@@ -1,7 +1,7 @@
 # ---------------------------------------------------------#
 #                   Build Plugin Binary                    #
 # ---------------------------------------------------------#
-FROM us-west1-docker.pkg.dev/gar-setup/docker/golang:1.25.7 as builder
+FROM us-west1-docker.pkg.dev/gar-setup/docker/golang:1.25.8 as builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates git && \
