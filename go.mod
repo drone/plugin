@@ -8,7 +8,7 @@ require (
 	github.com/buildkite/yaml v2.1.0+incompatible
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-git/go-git/v5 v5.17.1
+	github.com/go-git/go-git/v5 v5.18.0
 	github.com/google/go-cmp v0.7.0
 	github.com/harness/nektos-act v1.1.0
 	github.com/harness/nektos-act/v2 v2.0.0
