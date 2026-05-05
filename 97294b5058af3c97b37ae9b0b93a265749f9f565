@@ -1,0 +1,54 @@
+go.mod
+  human 11,27,115-118,122
+go.sum
+  human 38-39,91-92,256-259,264-271,316-317
+---
+{
+  "attestations": [
+    {
+      "entries": [
+        {
+          "accepted_lines": 7,
+          "added_lines": 7,
+          "deleted_lines": 0,
+          "hash": "human",
+          "lines": "11,27,115-118,122",
+          "overridden_lines": 0
+        }
+      ],
+      "file": "go.mod"
+    },
+    {
+      "entries": [
+        {
+          "accepted_lines": 18,
+          "added_lines": 18,
+          "deleted_lines": 0,
+          "hash": "human",
+          "lines": "38-39,91-92,256-259,264-271,316-317",
+          "overridden_lines": 0
+        }
+      ],
+      "file": "go.sum"
+    }
+  ],
+  "base_commit_sha": "e9444f943bc93af0a7026410bded60bbcbe781da",
+  "branch": "CI-21721-fix-otel-gogit",
+  "commit_sha": "97294b5058af3c97b37ae9b0b93a265749f9f565",
+  "commit_time": "2026-05-05T14:47:33-07:00",
+  "commit_type": "direct_commit",
+  "git_ai_version": "1.4.2",
+  "prompts": {
+    "human": {
+      "accepted_lines": 25,
+      "agent_id": null,
+      "human_author": "Soumyajit Das <soumyajit.das@harness.io>",
+      "messages": [],
+      "overriden_lines": 0,
+      "total_additions": 25,
+      "total_deletions": 0
+    }
+  },
+  "repo": "https://github.com/drone/plugin.git",
+  "schema_version": "authorship/3.0.0"
+}
