@@ -11,7 +11,7 @@ require (
 	github.com/go-git/go-git/v5 v5.17.1
 	github.com/google/go-cmp v0.7.0
 	github.com/harness/nektos-act v1.1.0
-	github.com/harness/nektos-act/v2 v2.0.0
+	github.com/harness/nektos-act/v2 v2.1.0
 	github.com/joho/godotenv v1.5.1
 	github.com/klauspost/compress v1.18.4
 	github.com/pkg/errors v0.9.1

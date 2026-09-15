@@ -115,8 +115,8 @@ github.com/harness-community/docker-v23 v23.0.6+incompatible h1:o2hU32CmT4+PWrgf
 github.com/harness-community/docker-v23 v23.0.6+incompatible/go.mod h1:sJYdwsCpqsKkR4VkkqM4vYZqOchUAn6ILqCneRMpFUI=
 github.com/harness/nektos-act v1.1.0 h1:Lm5g27rReNA64wi0bPaSvpFHKBq6mv8Kql0s0jjW0cI=
 github.com/harness/nektos-act v1.1.0/go.mod h1:pLytaMHlvfSRkXc6vkg0Dhe3Wehqi3llh+8Ip4juWWs=
-github.com/harness/nektos-act/v2 v2.0.0 h1:Vzi/DqhhmOWYVWrrvkDHxOAeZ4bdPqAd2ll8cDck+lw=
-github.com/harness/nektos-act/v2 v2.0.0/go.mod h1:olzJqtebihhbgatUA5z95lQZWM04AJiGOn2bo6o2hf0=
+github.com/harness/nektos-act/v2 v2.1.0 h1:yEa1uLDTmGhZ/ZsqVBUMDbkCgGHAVQ/Zpa11ShUN/NE=
+github.com/harness/nektos-act/v2 v2.1.0/go.mod h1:olzJqtebihhbgatUA5z95lQZWM04AJiGOn2bo6o2hf0=
 github.com/hinshun/vt10x v0.0.0-20220119200601-820417d04eec h1:qv2VnGeEQHchGaZ/u7lxST/RaJw+cv273q79D81Xbog=
 github.com/hinshun/vt10x v0.0.0-20220119200601-820417d04eec/go.mod h1:Q48J4R4DvxnHolD5P8pOtXigYlRuPLGl6moFx3ulM68=
 github.com/imdario/mergo v0.3.16 h1:wwQJbIsHYGMUyLSPrEq1CT16AhnhNJQ51+4fdHUnCl4=
