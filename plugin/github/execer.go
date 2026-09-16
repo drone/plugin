@@ -41,6 +41,10 @@ func (e *Execer) Exec(ctx context.Context) error {
 	envVars["RUNNER_TEMP"] = tmpDir
 	outputVars := getOutputVars(e.Source, e.Name)
 
+	if err := ensureOutputFileDir(e.OutputFile); err != nil {
+		return err
+	}
+
 	workflowFile := filepath.Join(tmpDir, "workflow.yml")
 	beforeStepEnvFile := filepath.Join(tmpDir, "before.env")
 	afterStepEnvFile := filepath.Join(tmpDir, "after.env")
@@ -101,4 +105,18 @@ func (e *Execer) Exec(ctx context.Context) error {
 func isJSON(str string) bool {
 	var js json.RawMessage
 	return json.Unmarshal([]byte(str), &js) == nil
+}
+
+func ensureOutputFileDir(outputFile string) error {
+	if outputFile == "" {
+		return nil
+	}
+	dir := filepath.Dir(outputFile)
+	if dir == "" || dir == "." {
+		return nil
+	}
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return errors.Wrap(err, "failed to create output file directory")
+	}
+	return nil
 }
