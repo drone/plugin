@@ -57,8 +57,22 @@ func saveOutputFromEnvStore(envs []map[string]string, outputfile string) error {
 			finalMap[k] = v
 		}
 	}
-	if len(finalMap) > 0 {
-		return godotenv.Write(finalMap, outputfile)
+	if len(finalMap) == 0 {
+		return nil
 	}
-	return nil
+	if err := ensureOutputFileDir(outputfile); err != nil {
+		return err
+	}
+	return godotenv.Write(finalMap, outputfile)
+}
+
+func ensureOutputFileDir(outputFile string) error {
+	if outputFile == "" {
+		return nil
+	}
+	dir := filepath.Dir(outputFile)
+	if dir == "" || dir == "." {
+		return nil
+	}
+	return os.MkdirAll(dir, 0755)
 }
