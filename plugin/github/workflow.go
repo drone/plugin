@@ -177,6 +177,6 @@ func outputVarWinScript(outputVars []string, prevStepId, outputFile string) stri
 		}
 		script += fmt.Sprintf("%s'%s=${{ steps.%s.outputs.%s }}\\n';", prefix, outputVar, stepId, outputVar)
 	}
-	script += fmt.Sprintf("f = open('%s', 'wb'); f.write(bytes(out, 'UTF-8')); f.close()", outputFile)
+	script += fmt.Sprintf("import os; d=os.path.dirname(r'%s'); os.makedirs(d, exist_ok=True) if d else None; f=open(r'%s','wb'); f.write(bytes(out,'UTF-8')); f.close()", outputFile, outputFile)
 	return script
 }
