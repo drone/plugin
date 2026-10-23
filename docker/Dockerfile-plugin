@@ -1,11 +1,14 @@
 # ---------------------------------------------------------#
 #                   Build Plugin Binary                    #
 # ---------------------------------------------------------#
-FROM us-west1-docker.pkg.dev/gar-setup/docker/golang:1.25.9 as builder
+FROM harness0.harness.io/oci/docker_artifacts/hhi/go:1.26.10 AS hhi-go-toolchain-0
+FROM harness0.harness.io/oci/docker_artifacts/hhi/harnessos-alpine:1 AS builder
+COPY --from=hhi-go-toolchain-0 /usr/lib/go /usr/lib/go
+ENV PATH=/usr/lib/go/bin:$PATH GOPATH=/go GOTOOLCHAIN=local
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates git && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+    'ca-certificates>=20261020-r0' git && \
+    rm -rf /var/cache/apk/*
 
 WORKDIR /app
 

@@ -1,8 +1,6 @@
 module github.com/drone/plugin
 
-go 1.25.5
-
-toolchain go1.25.9
+go 1.26.10
 
 require (
 	github.com/buildkite/yaml v2.1.0+incompatible
