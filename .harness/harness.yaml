@@ -48,7 +48,7 @@ pipeline:
                   identifier: Test_and_Build
                   spec:
                     connectorRef: Plugins_Docker_Hub_Connector
-                    image: golang:1.26.10
+                    image: golang:1.26.10@sha256:672c944cfd07599b5f1bb179869270cdc94c6254e41db4d431259693cb286b82
                     shell: Sh
                     command: |-
                       go test ./...
